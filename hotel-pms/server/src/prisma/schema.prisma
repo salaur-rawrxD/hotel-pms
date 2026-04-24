@@ -1,87 +1,24 @@
 // Hotel PMS Prisma schema
+//
+// Local dev uses SQLite (no DB server required). For production set the
+// provider to "postgresql", re-introduce enum types, and replace JSON-string
+// fields like `amenities` with native arrays (see PRODUCTION_NOTES below).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-// ────────────────────────────────────────────────
-// Enums
-// ────────────────────────────────────────────────
-
-enum UserRole {
-  ADMIN
-  MANAGER
-  FRONT_DESK
-  HOUSEKEEPING
-}
-
-enum RoomStatus {
-  VACANT
-  OCCUPIED
-  DIRTY
-  CLEAN
-  OUT_OF_ORDER
-  DUE_IN
-  DUE_OUT
-}
-
-enum LoyaltyTier {
-  NONE
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-}
-
-enum ReservationStatus {
-  CONFIRMED
-  CHECKED_IN
-  CHECKED_OUT
-  CANCELLED
-  NO_SHOW
-}
-
-enum BookingSource {
-  DIRECT
-  EXPEDIA
-  BOOKING
-  AIRBNB
-  CORPORATE
-  WALKIN
-}
-
-enum FolioItemType {
-  ROOM
-  FOOD
-  BEVERAGE
-  PARKING
-  OTHER
-  DISCOUNT
-  TAX
-}
-
-enum HousekeepingStatus {
-  PENDING
-  IN_PROGRESS
-  INSPECTED
-  DONE
-}
-
-enum MaintenanceStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
 }
 
 // ────────────────────────────────────────────────
 // Models
 // ────────────────────────────────────────────────
+//
+// Enum values are stored as strings and validated at the API layer via
+// zod schemas. Valid values are documented on each field.
 
 model Property {
   id          String    @id @default(cuid())
@@ -103,7 +40,8 @@ model User {
   email          String    @unique
   passwordHash   String
   name           String
-  role           UserRole
+  /// ADMIN | MANAGER | FRONT_DESK | HOUSEKEEPING
+  role           String
   propertyId     String?
   createdAt      DateTime  @default(now())
 
@@ -118,9 +56,10 @@ model User {
 model RoomType {
   id             String   @id @default(cuid())
   name           String
-  baseRate       Decimal  @db.Decimal(10, 2)
+  baseRate       Decimal
   maxOccupancy   Int      @default(2)
-  amenities      String[]
+  /// JSON-encoded String[] on SQLite; switch to String[] on PostgreSQL.
+  amenities      String   @default("[]")
   propertyId     String
 
   property       Property @relation(fields: [propertyId], references: [id])
@@ -136,7 +75,8 @@ model Room {
   number           String   @unique
   floor            Int
   roomTypeId       String
-  status           RoomStatus @default(VACANT)
+  /// VACANT | OCCUPIED | DIRTY | CLEAN | OUT_OF_ORDER | DUE_IN | DUE_OUT
+  status           String   @default("VACANT")
   currentGuestId   String?
 
   roomType         RoomType @relation(fields: [roomTypeId], references: [id])
@@ -158,7 +98,8 @@ model Guest {
   nationality    String?
   idType         String?
   idNumber       String?
-  loyaltyTier    LoyaltyTier @default(NONE)
+  /// NONE | BRONZE | SILVER | GOLD | PLATINUM
+  loyaltyTier    String     @default("NONE")
   loyaltyPoints  Int        @default(0)
   notes          String?
   createdAt      DateTime   @default(now())
@@ -168,23 +109,25 @@ model Guest {
 }
 
 model Reservation {
-  id                 String            @id @default(cuid())
-  confirmationNumber String            @unique
+  id                 String    @id @default(cuid())
+  confirmationNumber String    @unique
   guestId            String
   roomId             String?
   roomTypeId         String
   checkIn            DateTime
   checkOut           DateTime
-  adults             Int               @default(1)
-  children           Int               @default(0)
-  status             ReservationStatus @default(CONFIRMED)
-  source             BookingSource     @default(DIRECT)
+  adults             Int       @default(1)
+  children           Int       @default(0)
+  /// CONFIRMED | CHECKED_IN | CHECKED_OUT | CANCELLED | NO_SHOW
+  status             String    @default("CONFIRMED")
+  /// DIRECT | EXPEDIA | BOOKING | AIRBNB | CORPORATE | WALKIN
+  source             String    @default("DIRECT")
   ratePlanId         String?
-  totalAmount        Decimal           @db.Decimal(10, 2)
-  depositPaid        Decimal           @default(0) @db.Decimal(10, 2)
+  totalAmount        Decimal
+  depositPaid        Decimal   @default(0)
   specialRequests    String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   guest     Guest      @relation(fields: [guestId], references: [id])
   room      Room?      @relation(fields: [roomId], references: [id])
@@ -202,7 +145,7 @@ model RatePlan {
   id                  String   @id @default(cuid())
   name                String
   description         String?
-  baseRate            Decimal  @db.Decimal(10, 2)
+  baseRate            Decimal
   isRefundable        Boolean  @default(true)
   breakfastIncluded   Boolean  @default(false)
   propertyId          String
@@ -216,8 +159,8 @@ model RatePlan {
 model DailyRate {
   id                   String   @id @default(cuid())
   roomTypeId           String
-  date                 DateTime @db.Date
-  rate                 Decimal  @db.Decimal(10, 2)
+  date                 DateTime
+  rate                 Decimal
   minLOS               Int      @default(1)
   maxLOS               Int      @default(30)
   closedToArrival      Boolean  @default(false)
@@ -234,8 +177,9 @@ model FolioItem {
   id             String        @id @default(cuid())
   reservationId  String
   description    String
-  amount         Decimal       @db.Decimal(10, 2)
-  type           FolioItemType
+  amount         Decimal
+  /// ROOM | FOOD | BEVERAGE | PARKING | OTHER | DISCOUNT | TAX
+  type           String
   postedAt       DateTime      @default(now())
   postedById     String?
 
@@ -246,17 +190,18 @@ model FolioItem {
 }
 
 model HousekeepingTask {
-  id             String              @id @default(cuid())
+  id             String    @id @default(cuid())
   roomId         String
   assignedToId   String?
-  status         HousekeepingStatus  @default(PENDING)
-  priority       Int                 @default(3)
+  /// PENDING | IN_PROGRESS | INSPECTED | DONE
+  status         String    @default("PENDING")
+  priority       Int       @default(3)
   notes          String?
-  createdAt      DateTime            @default(now())
+  createdAt      DateTime  @default(now())
   completedAt    DateTime?
 
-  room           Room                @relation(fields: [roomId], references: [id])
-  assignedTo     User?               @relation("TasksAssigned", fields: [assignedToId], references: [id])
+  room           Room      @relation(fields: [roomId], references: [id])
+  assignedTo     User?     @relation("TasksAssigned", fields: [assignedToId], references: [id])
 
   @@index([roomId])
   @@index([assignedToId])
@@ -264,15 +209,16 @@ model HousekeepingTask {
 }
 
 model MaintenanceRequest {
-  id              String             @id @default(cuid())
+  id              String    @id @default(cuid())
   roomId          String
   reportedById    String
   description     String
-  status          MaintenanceStatus  @default(OPEN)
-  createdAt       DateTime           @default(now())
+  /// OPEN | IN_PROGRESS | RESOLVED | CLOSED
+  status          String    @default("OPEN")
+  createdAt       DateTime  @default(now())
 
-  room            Room               @relation(fields: [roomId], references: [id])
-  reportedBy      User               @relation("ReportsBy", fields: [reportedById], references: [id])
+  room            Room      @relation(fields: [roomId], references: [id])
+  reportedBy      User      @relation("ReportsBy", fields: [reportedById], references: [id])
 
   @@index([roomId])
   @@index([status])

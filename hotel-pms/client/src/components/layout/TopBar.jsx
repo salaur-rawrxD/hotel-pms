@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Menu, LogOut, Search, Bell } from "lucide-react";
 import { Menu as HeadlessMenu } from "@headlessui/react";
 import clsx from "clsx";
@@ -6,10 +7,19 @@ import Avatar from "../ui/Avatar.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import { useUiStore } from "../../store/uiStore.js";
 import { USER_ROLE_LABELS } from "../../constants/userRoles.js";
+import { formatDateTime } from "../../utils/formatDate.js";
+
+const PROPERTY_NAME = "The Meridian Hotel";
 
 export default function TopBar() {
   const { user, logout } = useAuth();
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-navy-700 bg-navy-900/80 px-6 backdrop-blur">
@@ -34,6 +44,14 @@ export default function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <div className="hidden flex-col items-end leading-tight lg:flex">
+          <span className="font-serif text-sm font-semibold text-slate-100">
+            {PROPERTY_NAME}
+          </span>
+          <span className="text-[11px] text-slate-400">
+            {formatDateTime(now, "EEE, MMM d · h:mm a")}
+          </span>
+        </div>
         <button
           type="button"
           className="relative rounded-md p-2 text-slate-300 hover:bg-navy-800 hover:text-slate-100"

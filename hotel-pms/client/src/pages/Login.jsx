@@ -50,7 +50,7 @@ export default function Login() {
             name="email"
             type="email"
             label="Email"
-            placeholder="you@meridian.test"
+            placeholder="you@meridian.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -81,7 +81,7 @@ export default function Login() {
         </form>
 
         <p className="mt-6 text-center text-xs text-slate-500">
-          Seeded logins end in <code>@meridian.test</code> · password{" "}
+          Seeded logins end in <code>@meridian.com</code> · password{" "}
           <code>password123</code>
         </p>
       </div>

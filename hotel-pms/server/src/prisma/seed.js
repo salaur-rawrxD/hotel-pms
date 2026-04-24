@@ -44,7 +44,7 @@ async function main() {
       name: "The Meridian Hotel",
       address: "5000 Hopyard Road, Pleasanton, CA 94588",
       phone: "+1 (925) 555-0100",
-      email: "hello@meridian.test",
+      email: "hello@meridian.com",
       totalRooms: 48,
       timezone: "America/Los_Angeles",
     },
@@ -53,12 +53,12 @@ async function main() {
   console.log("  → users");
   const passwordHash = await bcrypt.hash("password123", 10);
   const userSeed = [
-    { email: "admin@meridian.test",         name: "Alex Rivera",   role: "ADMIN" },
-    { email: "manager@meridian.test",       name: "Jordan Pierce", role: "MANAGER" },
-    { email: "frontdesk1@meridian.test",    name: "Maya Chen",     role: "FRONT_DESK" },
-    { email: "frontdesk2@meridian.test",    name: "Kai Patel",     role: "FRONT_DESK" },
-    { email: "housekeeping1@meridian.test", name: "Rosa Alvarez",  role: "HOUSEKEEPING" },
-    { email: "housekeeping2@meridian.test", name: "Tomás Silva",   role: "HOUSEKEEPING" },
+    { email: "admin@meridian.com",         name: "Alex Rivera",   role: "ADMIN" },
+    { email: "manager@meridian.com",       name: "Jordan Pierce", role: "MANAGER" },
+    { email: "frontdesk1@meridian.com",    name: "Maya Chen",     role: "FRONT_DESK" },
+    { email: "frontdesk2@meridian.com",    name: "Kai Patel",     role: "FRONT_DESK" },
+    { email: "housekeeping1@meridian.com", name: "Rosa Alvarez",  role: "HOUSEKEEPING" },
+    { email: "housekeeping2@meridian.com", name: "Tomás Silva",   role: "HOUSEKEEPING" },
   ];
 
   const users = [];
@@ -82,7 +82,13 @@ async function main() {
   const roomTypes = [];
   for (const rt of roomTypeSeed) {
     roomTypes.push(
-      await prisma.roomType.create({ data: { ...rt, propertyId: property.id } }),
+      await prisma.roomType.create({
+        data: {
+          ...rt,
+          amenities: JSON.stringify(rt.amenities),
+          propertyId: property.id,
+        },
+      }),
     );
   }
   const [standardKing, standardDouble, deluxeKing, juniorSuite, penthouseSuite] = roomTypes;
@@ -254,7 +260,7 @@ async function main() {
   }
 
   console.log("✅ Seed complete.");
-  console.log(`   Admin: admin@meridian.test / password123`);
+  console.log(`   Admin: admin@meridian.com / password123`);
   console.log(`   Total: ${rooms.length} rooms, ${guests.length} guests, 15 reservations`);
 }
 

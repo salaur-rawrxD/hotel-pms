@@ -3,7 +3,7 @@
 A full-stack Hotel Property Management System.
 
 - **Client**: React 18 + Vite + Tailwind CSS + React Router + React Query + Zustand
-- **Server**: Node.js + Express + Prisma + PostgreSQL + JWT auth + Zod validation
+- **Server**: Node.js + Express + Prisma + SQLite (dev) / PostgreSQL (prod) + JWT auth + Zod validation
 - **Shared**: Common constants/types consumed by both apps
 
 ## Project Structure
@@ -21,7 +21,12 @@ hotel-pms/
 ## Prerequisites
 
 - Node.js 18+
-- PostgreSQL 14+ running locally (or update `DATABASE_URL` for your setup)
+- **Local dev:** no database setup required — SQLite is used out of the box
+  (`server/src/prisma/dev.db` is created automatically).
+- **Production:** switch to PostgreSQL by changing `provider` to `"postgresql"`
+  in `server/src/prisma/schema.prisma`, then update `DATABASE_URL` to a
+  Postgres URL. You'll also want to replace the JSON-encoded `amenities`
+  field with a native `String[]` at the same time.
 
 ## First-time setup
 
@@ -64,12 +69,12 @@ npm run dev
 
 | Role          | Email                         |
 | ------------- | ----------------------------- |
-| Admin         | admin@meridian.test           |
-| Manager       | manager@meridian.test         |
-| Front Desk    | frontdesk1@meridian.test      |
-| Front Desk    | frontdesk2@meridian.test      |
-| Housekeeping  | housekeeping1@meridian.test   |
-| Housekeeping  | housekeeping2@meridian.test   |
+| Admin         | admin@meridian.com           |
+| Manager       | manager@meridian.com         |
+| Front Desk    | frontdesk1@meridian.com      |
+| Front Desk    | frontdesk2@meridian.com      |
+| Housekeeping  | housekeeping1@meridian.com   |
+| Housekeeping  | housekeeping2@meridian.com   |
 
 ## Health checks after first boot
 

@@ -12,12 +12,23 @@ function endOfDay(date) {
   return d;
 }
 
+function parseDateParam(raw) {
+  if (!raw) return new Date();
+  const v = String(raw).trim().toLowerCase();
+  const now = new Date();
+  if (v === "today" || v === "now") return now;
+  if (v === "yesterday") return new Date(now.getTime() - 86_400_000);
+  if (v === "tomorrow") return new Date(now.getTime() + 86_400_000);
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? now : parsed;
+}
+
 export async function dailySummary(req, res) {
-  const target = req.query.date ? new Date(req.query.date) : new Date();
+  const target = parseDateParam(req.query.date);
   const start = startOfDay(target);
   const end = endOfDay(target);
 
-  const [totalRooms, occupied, arrivals, departures] = await Promise.all([
+  const [totalRooms, occupied, arrivals, departures, postings] = await Promise.all([
     prisma.room.count(),
     prisma.reservation.count({
       where: {
@@ -38,13 +49,21 @@ export async function dailySummary(req, res) {
         checkOut: { gte: start, lte: end },
       },
     }),
+    prisma.folioItem.aggregate({
+      _sum: { amount: true },
+      where: { postedAt: { gte: start, lte: end } },
+    }),
   ]);
+
+  const revenue = Number(postings._sum.amount ?? 0);
 
   res.json({
     date: start.toISOString(),
     totalRooms,
     occupied,
+    occupancy: totalRooms ? Math.round((occupied / totalRooms) * 100) : 0,
     occupancyPct: totalRooms ? Math.round((occupied / totalRooms) * 100) : 0,
+    revenue,
     arrivals,
     departures,
   });
@@ -69,7 +88,7 @@ export async function revenue(req, res) {
 }
 
 export async function arrivalsDepartures(req, res) {
-  const target = req.query.date ? new Date(req.query.date) : new Date();
+  const target = parseDateParam(req.query.date);
   const start = startOfDay(target);
   const end = endOfDay(target);
 
