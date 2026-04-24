@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "../layout/Modal.jsx";
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import { useQuickActionMutation } from "../../hooks/useFrontDesk.js";
 import { useAuthStore } from "../../store/authStore.js";
 import { USER_ROLES } from "../../constants/userRoles.js";
@@ -46,13 +46,13 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
         </div>
         <div>
           <p>Key cards issued: {cards}</p>
-          <Button
+          <LegacyButton
             size="sm"
             type="button"
             onClick={() => act({ action: "issueNewKey" })}
           >
             Issue key
-          </Button>
+          </LegacyButton>
         </div>
         <div>
           <p className="text-xs text-slate-500">Wake-up</p>
@@ -62,7 +62,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
             value={wakeTime}
             onChange={(e) => setWakeTime(e.target.value)}
           />
-          <Button
+          <LegacyButton
             size="sm"
             type="button"
             onClick={() => {
@@ -73,7 +73,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
             }}
           >
             Set alarm
-          </Button>
+          </LegacyButton>
         </div>
         <div>
           <p className="text-xs text-slate-500">Late checkout (fee {lateFee})</p>
@@ -122,7 +122,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
                   </option>
                 ))}
             </select>
-            <Button
+            <LegacyButton
               className="mt-2"
               size="sm"
               type="button"
@@ -132,7 +132,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
               }}
             >
               Move
-            </Button>
+            </LegacyButton>
           </div>
         )}
         <div>
@@ -143,7 +143,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
             value={newCo}
             onChange={(e) => setNewCo(e.target.value)}
           />
-          <Button
+          <LegacyButton
             className="ml-2"
             size="sm"
             type="button"
@@ -156,7 +156,7 @@ export default function QuickActionsPanel({ open, onClose, row, allRooms = [] })
             }}
           >
             Update
-          </Button>
+          </LegacyButton>
         </div>
       </div>
     </Modal>

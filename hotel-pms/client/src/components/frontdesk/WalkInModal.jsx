@@ -4,7 +4,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 
 import Modal from "../layout/Modal.jsx";
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import { roomsApi } from "../../api/rooms.js";
 import { ratesApi } from "../../api/rates.js";
 import { useWalkInMutation, useCheckInMutation } from "../../hooks/useFrontDesk.js";
@@ -322,22 +322,22 @@ export default function WalkInModal({ open, onClose, onCheckInStart }) {
           Est. {nights} night{nights > 1 ? "s" : ""}: {formatCurrency(est)}
         </div>
         <div className="col-span-2 flex flex-wrap gap-2">
-          <Button
+          <LegacyButton
             type="button"
             variant="gold"
             loading={walkInM.isPending || checkInM.isPending}
             onClick={createAndCheckIn}
           >
             Create &amp; check in
-          </Button>
-          <Button
+          </LegacyButton>
+          <LegacyButton
             type="button"
             variant="ghost"
             loading={walkInM.isPending}
             onClick={createOnly}
           >
             Create only
-          </Button>
+          </LegacyButton>
         </div>
       </div>
     </Modal>

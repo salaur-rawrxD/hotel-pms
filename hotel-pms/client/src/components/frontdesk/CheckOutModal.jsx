@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { format } from "date-fns";
 
 import Modal from "../layout/Modal.jsx";
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import {
   useFolioItemMutation,
   useCheckOutMutation,
@@ -247,7 +247,7 @@ export default function CheckOutModal({ open, onClose, reservation, onSuccess })
               </button>
             ))}
           </div>
-          <Button
+          <LegacyButton
             variant="gold"
             className="!w-full"
             type="button"
@@ -255,7 +255,7 @@ export default function CheckOutModal({ open, onClose, reservation, onSuccess })
             onClick={payAndCheckout}
           >
             Complete check-out
-          </Button>
+          </LegacyButton>
         </div>
       </div>
     </Modal>

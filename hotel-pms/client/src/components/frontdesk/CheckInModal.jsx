@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { KeyRound, Star } from "lucide-react";
 
 import Modal from "../layout/Modal.jsx";
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import { roomsApi } from "../../api/rooms.js";
 import {
   useCheckInMutation,
@@ -210,13 +210,13 @@ export default function CheckInModal({ open, onClose, reservation, onSuccess }) 
             onChange={(e) => setNotes(e.target.value)}
           />
           <div className="flex justify-end">
-            <Button
+            <LegacyButton
               type="button"
               disabled={!canNext1}
               onClick={() => setStep(2)}
             >
               Next
-            </Button>
+            </LegacyButton>
           </div>
         </div>
       )}
@@ -258,12 +258,12 @@ export default function CheckInModal({ open, onClose, reservation, onSuccess }) 
             </div>
           )}
           <div className="flex justify-between">
-            <Button variant="ghost" type="button" onClick={() => setStep(1)}>
+            <LegacyButton variant="ghost" type="button" onClick={() => setStep(1)}>
               Back
-            </Button>
-            <Button type="button" onClick={() => setStep(3)}>
+            </LegacyButton>
+            <LegacyButton type="button" onClick={() => setStep(3)}>
               Next
-            </Button>
+            </LegacyButton>
           </div>
         </div>
       )}
@@ -328,17 +328,17 @@ export default function CheckInModal({ open, onClose, reservation, onSuccess }) 
             Guest signed registration card
           </label>
           <div className="flex justify-between">
-            <Button variant="ghost" type="button" onClick={() => setStep(2)}>
+            <LegacyButton variant="ghost" type="button" onClick={() => setStep(2)}>
               Back
-            </Button>
-            <Button
+            </LegacyButton>
+            <LegacyButton
               type="button"
               loading={checkInM.isPending || assignM.isPending || noteM.isPending}
               disabled={!regSigned}
               onClick={complete}
             >
               Complete check-in
-            </Button>
+            </LegacyButton>
           </div>
         </div>
       )}

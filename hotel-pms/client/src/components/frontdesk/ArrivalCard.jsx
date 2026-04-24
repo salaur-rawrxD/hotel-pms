@@ -5,9 +5,9 @@ import { format } from "date-fns";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import Button from "../ui/Button.jsx";
-import Avatar from "../ui/Avatar.jsx";
-import Tooltip from "../ui/Tooltip.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
+import InitialsAvatar from "../ui/InitialsAvatar.jsx";
+import SimpleTooltip from "../ui/SimpleTooltip.jsx";
 import { reservationsApi } from "../../api/reservations.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore.js";
@@ -84,7 +84,7 @@ export default function ArrivalCard({
               row.vipGuest && "rounded-full p-0.5 ring-2 ring-gold",
             )}
           >
-            <Avatar name={name} className="h-12 w-12 text-sm" />
+            <InitialsAvatar name={name} className="h-12 w-12 text-sm" />
           </div>
           <div>
             <p className="font-serif text-base font-semibold text-slate-50">
@@ -125,14 +125,14 @@ export default function ArrivalCard({
                 <span className="inline-flex items-center rounded-md bg-rose-500/20 px-2 py-0.5 text-xs font-medium text-rose-200">
                   No room
                 </span>
-                <Button
+                <LegacyButton
                   size="sm"
                   variant="secondary"
                   type="button"
                   onClick={() => onAssignRoom?.(row)}
                 >
                   Assign room
-                </Button>
+                </LegacyButton>
               </>
             )}
           </div>
@@ -153,7 +153,7 @@ export default function ArrivalCard({
             )}
           </div>
           {row.specialRequests && (
-            <Tooltip
+            <SimpleTooltip
               content={row.specialRequests}
               side="left"
             >
@@ -161,7 +161,7 @@ export default function ArrivalCard({
                 <AlertCircle className="h-4 w-4" />
                 <span className="text-xs">Special requests</span>
               </span>
-            </Tooltip>
+            </SimpleTooltip>
           )}
           {row.vipGuest && (
             <span className="mb-1 flex items-center justify-end gap-1 text-gold text-xs">
@@ -193,41 +193,41 @@ export default function ArrivalCard({
             onChange={(e) => setNoteText(e.target.value)}
           />
           <div className="flex gap-2">
-            <Button
+            <LegacyButton
               type="button"
               size="sm"
               onClick={submitNote}
             >
               Save
-            </Button>
-            <Button
+            </LegacyButton>
+            <LegacyButton
               type="button"
               size="sm"
               variant="ghost"
               onClick={() => setNoteOpen(false)}
             >
               Cancel
-            </Button>
+            </LegacyButton>
           </div>
         </div>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-navy-700 pt-3">
-        <Button
+        <LegacyButton
           variant="primary"
           type="button"
           disabled={!hasRoom}
           onClick={() => onCheckIn?.(row)}
         >
           Check in
-        </Button>
-        <Button
+        </LegacyButton>
+        <LegacyButton
           variant="secondary"
           type="button"
           onClick={() => onViewFolio?.(row)}
         >
           View folio
-        </Button>
+        </LegacyButton>
         <HeadlessMenu as="div" className="relative">
           <HeadlessMenu.Button className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-navy-600 text-slate-300 hover:bg-navy-700">
             <MoreVertical className="h-4 w-4" />

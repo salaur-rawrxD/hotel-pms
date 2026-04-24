@@ -3,8 +3,8 @@ import { Clock, MoreVertical } from "lucide-react";
 import clsx from "clsx";
 import { format } from "date-fns";
 
-import Button from "../ui/Button.jsx";
-import Avatar from "../ui/Avatar.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
+import InitialsAvatar from "../ui/InitialsAvatar.jsx";
 
 import { formatCurrency, loyaltyClass } from "./utils.js";
 
@@ -28,7 +28,7 @@ export default function DepartureCard({
     <div className="flex flex-col rounded-xl border border-navy-700 bg-navy-800/50 p-4">
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="flex items-start gap-3">
-          <Avatar name={name} className="h-12 w-12 text-sm" />
+          <InitialsAvatar name={name} className="h-12 w-12 text-sm" />
           <div>
             <p className="font-serif text-base font-semibold text-slate-50">
               {name}
@@ -82,27 +82,27 @@ export default function DepartureCard({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-navy-700 pt-3">
-        <Button
+        <LegacyButton
           variant="danger"
           type="button"
           onClick={() => onCheckOut?.(row)}
         >
           Check out{bal > 0 ? ` ${formatCurrency(bal)}` : ""}
-        </Button>
-        <Button
+        </LegacyButton>
+        <LegacyButton
           variant="secondary"
           type="button"
           onClick={() => onViewFolio?.(row)}
         >
           View folio
-        </Button>
-        <Button
+        </LegacyButton>
+        <LegacyButton
           variant="ghost"
           type="button"
           onClick={() => onLateFee?.(row)}
         >
           Late checkout
-        </Button>
+        </LegacyButton>
         <HeadlessMenu as="div" className="relative">
           <HeadlessMenu.Button className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-navy-600 text-slate-300 hover:bg-navy-700">
             <MoreVertical className="h-4 w-4" />

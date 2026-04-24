@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { useNightAudit } from "../../hooks/useFrontDesk.js";
 import { useAuthStore } from "../../store/authStore.js";
 import { USER_ROLES } from "../../constants/userRoles.js";
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import { formatCurrency } from "./utils.js";
 
 const CHECKLIST = [
@@ -113,7 +113,7 @@ export default function NightAuditPanel() {
           ))}
         </ul>
         {canClose && (
-          <Button
+          <LegacyButton
             className="mt-4"
             variant="secondary"
             type="button"
@@ -124,7 +124,7 @@ export default function NightAuditPanel() {
             }}
           >
             Close day
-          </Button>
+          </LegacyButton>
         )}
       </div>
     </div>
