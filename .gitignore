@@ -1,38 +1,50 @@
-# Dependencies
+# ─── Dependencies ─────────────────────────────
 node_modules/
+client/node_modules/
+server/node_modules/
+hotel-pms/node_modules/
+hotel-pms/client/node_modules/
+hotel-pms/server/node_modules/
 
-# Local Node toolchain (too large for git; install via brew/nvm instead)
+# Local Node toolchain (too large for git; use brew/nvm instead)
 .tools/
 
-# Environment
+# ─── Environment files (NEVER commit these) ───
 .env
 .env.local
+.env.production
 .env.*.local
 
-# Build output
-**/dist/
+# ─── Build output ─────────────────────────────
+client/dist/
+server/dist/
+hotel-pms/client/dist/
+hotel-pms/server/dist/
 **/build/
 
-# Logs
+# ─── Prisma ───────────────────────────────────
+server/src/prisma/dev.db
+hotel-pms/server/src/prisma/dev.db
+hotel-pms/server/src/prisma/*.db
+hotel-pms/server/src/prisma/*.db-journal
+hotel-pms/server/src/prisma/migrations/dev.db*
+
+# ─── OS ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+Icon?
+
+# ─── Logs ─────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
 logs/
 
-# Editor / OS
-.DS_Store
+# ─── Editors ──────────────────────────────────
 .vscode/
 .idea/
 *.swp
 
-# Prisma
-hotel-pms/server/src/prisma/migrations/dev.db*
-hotel-pms/server/src/prisma/*.db
-hotel-pms/server/src/prisma/*.db-journal
-
-# Vite cache
+# ─── Vite cache ───────────────────────────────
 **/.vite/
-
-# macOS
-Icon?
