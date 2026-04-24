@@ -22,4 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.vercel
+# Vercel: keep project link for fairbridge-pms; ignore local cache/readme
+.vercel/*
+!.vercel/project.json
