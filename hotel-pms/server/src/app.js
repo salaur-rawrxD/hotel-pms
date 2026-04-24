@@ -15,6 +15,7 @@ import housekeepingRoutes from "./routes/housekeeping.routes.js";
 import channelsRoutes from "./routes/channels.routes.js";
 import reportsRoutes from "./routes/reports.routes.js";
 import usersRoutes from "./routes/users.routes.js";
+import frontdeskRoutes from "./routes/frontdesk.routes.js";
 
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
@@ -56,6 +57,7 @@ export function createApp() {
   app.use("/api/channels", channelsRoutes);
   app.use("/api/reports", reportsRoutes);
   app.use("/api/users", usersRoutes);
+  app.use("/api/frontdesk", frontdeskRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

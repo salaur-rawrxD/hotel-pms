@@ -15,6 +15,7 @@ export function authenticate(req, _res, next) {
     req.user = {
       id: payload.sub,
       email: payload.email,
+      name: payload.name ?? "Staff",
       role: payload.role,
       propertyId: payload.propertyId ?? null,
     };

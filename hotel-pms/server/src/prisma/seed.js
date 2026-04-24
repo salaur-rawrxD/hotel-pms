@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -27,6 +27,9 @@ async function main() {
 
   console.log("  → clearing existing data");
   await prisma.folioItem.deleteMany();
+  await prisma.keyCard.deleteMany();
+  await prisma.wakeUpCall.deleteMany();
+  await prisma.guestNote.deleteMany();
   await prisma.housekeepingTask.deleteMany();
   await prisma.maintenanceRequest.deleteMany();
   await prisma.reservation.deleteMany();
@@ -176,8 +179,8 @@ async function main() {
     { guest: 0, nightsAgo: 2, nights: 4, status: "CHECKED_IN", source: "DIRECT",    roomIdx: 0 },
     { guest: 2, nightsAgo: 1, nights: 5, status: "CHECKED_IN", source: "EXPEDIA",   roomIdx: 7 },
     { guest: 5, nightsAgo: 3, nights: 6, status: "CHECKED_IN", source: "BOOKING",   roomIdx: 14 },
-    { guest: 9, nightsAgo: 1, nights: 3, status: "CHECKED_IN", source: "CORPORATE", roomIdx: 20 },
-    { guest: 7, nightsAgo: 2, nights: 4, status: "CHECKED_IN", source: "DIRECT",    roomIdx: 31 },
+    { guest: 9, nightsAgo: 1, nights: 3, status: "CHECKED_IN", source: "CORPORATE", roomIdx: 16 },
+    { guest: 7, nightsAgo: 2, nights: 4, status: "CHECKED_IN", source: "DIRECT",    roomIdx: 36 },
     // Arriving today (3)
     { guest: 1, nightsAgo: 0, nights: 2, status: "CONFIRMED", source: "AIRBNB",    roomIdx: 38 },
     { guest: 3, nightsAgo: 0, nights: 3, status: "CONFIRMED", source: "DIRECT",    roomIdx: 42 },
@@ -207,8 +210,10 @@ async function main() {
     checkOut.setHours(11, 0, 0, 0);
     const nightly = Number(roomType.baseRate);
     const total = Number((nightly * spec.nights * 1.12).toFixed(2));
+    const deposit =
+      spec.status === "CHECKED_IN" ? Number((total * 0.3).toFixed(2)) : 0;
 
-    await prisma.reservation.create({
+    const resRow = await prisma.reservation.create({
       data: {
         confirmationNumber: makeConfirmation(1000 + i),
         guestId: guest.id,
@@ -222,9 +227,14 @@ async function main() {
         source: spec.source,
         ratePlanId: bar.id,
         totalAmount: total,
-        depositPaid: spec.status === "CHECKED_IN" ? Number((total * 0.3).toFixed(2)) : 0,
+        depositPaid: new Prisma.Decimal(deposit.toFixed(2)),
         specialRequests:
           i % 3 === 0 ? "High floor if possible." : null,
+        vipGuest: false,
+        idVerified: spec.status === "CHECKED_IN",
+        paymentMethod: spec.status === "CHECKED_IN" ? "CREDIT_CARD" : null,
+        actualCheckIn: spec.status === "CHECKED_IN" ? checkIn : null,
+        balanceDue: new Prisma.Decimal(0),
       },
     });
 
@@ -232,6 +242,100 @@ async function main() {
       await prisma.room.update({
         where: { id: room.id },
         data: { status: "OCCUPIED", currentGuestId: guest.id },
+      });
+
+      const nights = spec.nights;
+      const subtotal = nightly * nights;
+      const tax = Math.round(subtotal * 0.14 * 100) / 100;
+      const minibar = i % 2 === 0 ? 24.5 : 12;
+
+      for (let n = 0; n < nights; n++) {
+        const d = new Date(checkIn);
+        d.setDate(d.getDate() + n);
+        await prisma.folioItem.create({
+          data: {
+            reservationId: resRow.id,
+            description: `Room — ${d.toLocaleDateString()}`,
+            amount: new Prisma.Decimal(nightly.toFixed(2)),
+            type: "ROOM",
+            postedById: admin.id,
+          },
+        });
+      }
+      await prisma.folioItem.create({
+        data: {
+          reservationId: resRow.id,
+          description: "Tax (14%)",
+          amount: new Prisma.Decimal(tax.toFixed(2)),
+          type: "TAX",
+          postedById: admin.id,
+        },
+      });
+      await prisma.folioItem.create({
+        data: {
+          reservationId: resRow.id,
+          description: "Resort & services",
+          amount: new Prisma.Decimal(minibar.toFixed(2)),
+          type: "OTHER",
+          postedById: admin.id,
+        },
+      });
+      if (deposit > 0) {
+        await prisma.folioItem.create({
+          data: {
+            reservationId: resRow.id,
+            description: "Deposit received",
+            amount: new Prisma.Decimal((-deposit).toFixed(2)),
+            type: "PAYMENT",
+            postedById: admin.id,
+          },
+        });
+      }
+      const balance =
+        subtotal + tax + minibar - deposit;
+      const isVip =
+        (spec.guest === 0 || spec.guest === 2) && spec.status === "CHECKED_IN";
+      await prisma.reservation.update({
+        where: { id: resRow.id },
+        data: {
+          balanceDue: new Prisma.Decimal(balance.toFixed(2)),
+          vipGuest: isVip,
+        },
+      });
+      await prisma.keyCard.create({
+        data: {
+          reservationId: resRow.id,
+          keyNumber: 1,
+          issuedBy: admin.name,
+        },
+      });
+    }
+  }
+
+  const room201 = rooms.find((r) => r.number === "201");
+  const room305 = rooms.find((r) => r.number === "305");
+  const tomorrow = addDays(today, 1);
+  if (room201) {
+    const res201 = await prisma.reservation.findFirst({
+      where: { roomId: room201.id, status: "CHECKED_IN" },
+    });
+    if (res201) {
+      const t1 = new Date(tomorrow);
+      t1.setHours(6, 30, 0, 0);
+      await prisma.wakeUpCall.create({
+        data: { reservationId: res201.id, scheduledFor: t1 },
+      });
+    }
+  }
+  if (room305) {
+    const res305 = await prisma.reservation.findFirst({
+      where: { roomId: room305.id, status: "CHECKED_IN" },
+    });
+    if (res305) {
+      const t2 = new Date(tomorrow);
+      t2.setHours(7, 0, 0, 0);
+      await prisma.wakeUpCall.create({
+        data: { reservationId: res305.id, scheduledFor: t2 },
       });
     }
   }

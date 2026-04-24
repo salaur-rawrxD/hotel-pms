@@ -63,6 +63,7 @@ enum FolioItemType {
   OTHER
   DISCOUNT
   TAX
+  PAYMENT
 }
 
 enum HousekeepingStatus {
@@ -185,12 +186,25 @@ model Reservation {
   specialRequests    String?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  actualCheckIn      DateTime?
+  actualCheckOut     DateTime?
+  earlyCheckIn       Boolean           @default(false)
+  lateCheckOut       Boolean           @default(false)
+  lateCheckOutFee    Decimal?          @db.Decimal(10, 2)
+  doNotDisturb       Boolean           @default(false)
+  vipGuest           Boolean           @default(false)
+  balanceDue         Decimal           @default(0) @db.Decimal(10, 2)
+  paymentMethod      String?
+  idVerified         Boolean           @default(false)
 
-  guest     Guest      @relation(fields: [guestId], references: [id])
-  room      Room?      @relation(fields: [roomId], references: [id])
-  roomType  RoomType   @relation(fields: [roomTypeId], references: [id])
-  ratePlan  RatePlan?  @relation(fields: [ratePlanId], references: [id])
-  folio     FolioItem[]
+  guest       Guest         @relation(fields: [guestId], references: [id])
+  room        Room?         @relation(fields: [roomId], references: [id])
+  roomType    RoomType      @relation(fields: [roomTypeId], references: [id])
+  ratePlan    RatePlan?     @relation(fields: [ratePlanId], references: [id])
+  folio       FolioItem[]
+  keyCards    KeyCard[]
+  wakeUpCalls WakeUpCall[]
+  guestNotes  GuestNote[]
 
   @@index([guestId])
   @@index([roomId])
@@ -230,6 +244,44 @@ model DailyRate {
   @@index([date])
 }
 
+model GuestNote {
+  id            String      @id @default(cuid())
+  reservationId String
+  note          String
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  type          String      @default("GENERAL")
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+}
+
+model WakeUpCall {
+  id             String      @id @default(cuid())
+  reservationId  String
+  scheduledFor   DateTime
+  delivered      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  reservation    Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+}
+
+model KeyCard {
+  id             String      @id @default(cuid())
+  reservationId  String
+  keyNumber      Int
+  issuedAt       DateTime    @default(now())
+  issuedBy       String
+  isActive       Boolean     @default(true)
+
+  reservation    Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+}
+
 model FolioItem {
   id             String        @id @default(cuid())
   reservationId  String
@@ -238,6 +290,7 @@ model FolioItem {
   type           FolioItemType
   postedAt       DateTime      @default(now())
   postedById     String?
+  voidedAt       DateTime?
 
   reservation    Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   postedBy       User?         @relation(fields: [postedById], references: [id])
@@ -249,10 +302,13 @@ model HousekeepingTask {
   id             String              @id @default(cuid())
   roomId         String
   assignedToId   String?
+  /// CHECKOUT | STAY_OVER | DEEP_CLEAN
+  taskType       String              @default("CHECKOUT")
   status         HousekeepingStatus  @default(PENDING)
   priority       Int                 @default(3)
   notes          String?
   createdAt      DateTime            @default(now())
+  startedAt      DateTime?
   completedAt    DateTime?
 
   room           Room                @relation(fields: [roomId], references: [id])
