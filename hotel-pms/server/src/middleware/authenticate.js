@@ -15,6 +15,10 @@ export function authenticate(req, _res, next) {
     req.user = {
       ...payload,
       id: payload.userId ?? payload.sub ?? payload.id,
+      email: payload.email,
+      name: payload.name ?? "Staff",
+      role: payload.role,
+      propertyId: payload.propertyId ?? null,
     };
     next();
   } catch (_error) {
