@@ -2,8 +2,13 @@ import axios from "axios";
 
 export const TOKEN_STORAGE_KEY = "pms_token";
 
+/** Deployed API (fairbridge-pms-server). Override with VITE_API_BASE_URL when needed. */
+const PRODUCTION_API_BASE =
+  "https://fairbridge-pms-server.vercel.app/api";
+
 const baseURL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001/api";
+  import.meta.env.VITE_API_BASE_URL?.trim() ||
+  (import.meta.env.PROD ? PRODUCTION_API_BASE : "http://localhost:3001/api");
 
 const axiosClient = axios.create({
   baseURL,

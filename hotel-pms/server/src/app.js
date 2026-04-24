@@ -20,20 +20,43 @@ import usersRoutes from "./routes/users.routes.js";
 
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
+function parseOriginList(value) {
+  if (!value || typeof value !== "string") return [];
+  return value
+    .split(/[, \n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function isFairbridgeVercelOrigin(origin) {
+  try {
+    const { hostname } = new URL(origin);
+    if (!hostname.endsWith(".vercel.app")) return false;
+    return /fairbridge|hotel-pms/i.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function createApp() {
   const app = express();
 
-  const allowedOrigins = [
+  const allowedOrigins = new Set([
     "http://localhost:5173",
     "http://localhost:4173",
-    process.env.CLIENT_URL,
-  ].filter(Boolean);
+    ...parseOriginList(process.env.CLIENT_URL),
+    ...parseOriginList(process.env.CLIENT_ORIGIN),
+  ]);
 
   app.use(helmet());
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (
+          !origin ||
+          allowedOrigins.has(origin) ||
+          isFairbridgeVercelOrigin(origin)
+        ) {
           callback(null, true);
         } else {
           callback(new Error("Not allowed by CORS"));
