@@ -58,7 +58,11 @@ export function createApp() {
     ...parseOriginList(process.env.CLIENT_ORIGIN),
   ]);
 
-  app.use(helmet());
+  // default CORP is "same-origin" and can block XHR/fetch to this API from other origins
+  // (browsers may surface this as a generic axios "Network Error").
+  app.use(
+    helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }),
+  );
   app.use(
     cors({
       origin: (origin, callback) => {
@@ -66,7 +70,7 @@ export function createApp() {
           !origin ||
           allowedOrigins.has(origin) ||
           isFairbridgeVercelOrigin(origin) ||
-          (process.env.VERCEL && isVercelAppOrigin(origin))
+          isVercelAppOrigin(origin)
         ) {
           callback(null, true);
         } else {
