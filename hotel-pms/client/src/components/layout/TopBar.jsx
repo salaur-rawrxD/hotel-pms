@@ -1,8 +1,26 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Bell,
+  ChevronDown,
+  Clock3,
+  LogOut,
+  Settings as SettingsIcon,
+  User as UserIcon,
+} from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore.js";
+import { Button } from "../ui/button.jsx";
+import { Separator } from "../ui/separator.jsx";
+import { UserAvatar } from "../ui/avatar.jsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu.jsx";
 
 const ROUTE_TITLES = {
   "/dashboard":    "Dashboard",
@@ -24,88 +42,93 @@ function titleFromPath(pathname) {
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
-function buildCrumbs(pathname) {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts.length <= 1) return [];
-  return parts.map((p, i) => ({
-    label: p.replace(/-/g, " "),
-    to: "/" + parts.slice(0, i + 1).join("/"),
-  }));
-}
-
 function formatLiveDateTime(d) {
   const weekday = d.toLocaleDateString(undefined, { weekday: "long" });
-  const monthDay = d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
   const time = d.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
   });
-  return `${weekday}, ${monthDay} · ${time}`;
-}
-
-function getInitials(name = "") {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((p) => p[0]?.toUpperCase())
-      .join("") || "?"
-  );
+  return `${weekday} · ${time}`;
 }
 
 const NOTIFICATION_COUNT = 3;
 
 export default function TopBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
 
   const title = titleFromPath(location.pathname);
-  const crumbs = buildCrumbs(location.pathname);
 
   return (
-    <header className="topbar flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
-      <div className="min-w-0">
-        <h1 className="truncate font-serif text-xl font-semibold text-navy-900">
-          {title}
-        </h1>
-        {crumbs.length > 1 && (
-          <p className="mt-0.5 truncate text-[11px] capitalize text-slate-500">
-            {crumbs.map((c) => c.label).join(" / ")}
-          </p>
-        )}
-      </div>
+    <header className="topbar">
+      <h1 className="topbar-title truncate">{title}</h1>
 
-      <div className="flex items-center gap-4">
-        <span className="hidden text-xs font-medium text-slate-500 md:inline">
+      <div className="flex items-center gap-3">
+        <span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:inline-flex">
+          <Clock3 className="h-3.5 w-3.5" />
           {formatLiveDateTime(now)}
         </span>
 
-        <button
-          type="button"
+        <Separator orientation="vertical" className="hidden h-6 md:block" />
+
+        <Button
+          variant="ghost"
+          size="icon"
           aria-label="Notifications"
-          className="relative grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50"
+          className="relative"
         >
           <Bell className="h-4 w-4" />
           {NOTIFICATION_COUNT > 0 && (
-            <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy-900">
+            <span className="absolute -top-0.5 -right-0.5 grid h-4 min-w-[1rem] place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
               {NOTIFICATION_COUNT}
             </span>
           )}
-        </button>
+        </Button>
 
-        <span
-          className="grid h-9 w-9 place-items-center rounded-full bg-teal text-xs font-semibold text-white"
-          title={user?.name ?? ""}
-        >
-          {getInitials(user?.name)}
-        </span>
+        <Separator orientation="vertical" className="h-6" />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2 pl-1.5 pr-2 h-9">
+              <UserAvatar name={user?.name} size="sm" />
+              <span className="hidden text-sm font-medium text-foreground md:inline">
+                {user?.name ?? "Unknown"}
+              </span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="flex flex-col gap-0.5">
+              <span>{user?.name ?? "Unknown"}</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {user?.email ?? ""}
+              </span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/guests")}>
+              <UserIcon /> My Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <SettingsIcon /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => logout()}
+            >
+              <LogOut /> Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

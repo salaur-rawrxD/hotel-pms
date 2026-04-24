@@ -1,32 +1,502 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  html,
-  body,
-  #root {
-    height: 100%;
+  :root {
+    /* ── shadcn base tokens ── */
+    --background:         0 0% 99%;
+    --foreground:         222 25% 10%;
+    --card:               0 0% 100%;
+    --card-foreground:    222 25% 10%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 222 25% 10%;
+    --primary:            173 60% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          210 20% 96%;
+    --secondary-foreground: 222 25% 20%;
+    --muted:              210 20% 96%;
+    --muted-foreground:   215 14% 46%;
+    --accent:             210 20% 94%;
+    --accent-foreground:  222 25% 10%;
+    --destructive:        0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             214 20% 91%;
+    --input:              214 20% 91%;
+    --ring:               173 60% 26%;
+    --radius:             0.5rem;
+
+    /* ── Brand tokens ── */
+    --navy:               215 42% 13%;
+    --navy-light:         215 38% 18%;
+    --teal:               173 60% 26%;
+    --teal-light:         173 52% 36%;
+    --teal-muted:         173 40% 92%;
+    --gold:               40 58% 54%;
+    --gold-light:         43 72% 72%;
+    --gold-muted:         43 60% 94%;
+
+    /* ── Sidebar tokens ── */
+    --sidebar-bg:          215 42% 13%;
+    --sidebar-border:      215 35% 20%;
+    --sidebar-text:        215 20% 72%;
+    --sidebar-text-hover:  0 0% 100%;
+    --sidebar-active-bg:   173 40% 20%;
+    --sidebar-active-text: 173 52% 72%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    @apply h-full;
   }
 
   body {
-    @apply bg-navy-900 text-slate-100 font-sans antialiased;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-serif;
+  h1, h2 {
+    font-family: 'Playfair Display', ui-serif, Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
-  .scrollbar-thin {
-    scrollbar-width: thin;
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  .sidebar {
+    background: hsl(var(--sidebar-bg));
+    border-right: 1px solid hsl(var(--sidebar-border));
+    @apply w-64 min-h-screen flex flex-col fixed left-0 top-0 z-40;
+  }
+
+  .sidebar-logo {
+    @apply px-5 py-5 flex items-center gap-2.5;
+    border-bottom: 1px solid hsl(var(--sidebar-border));
+  }
+
+  .sidebar-logo-text {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  .sidebar-logo-text span {
+    color: hsl(var(--gold));
+  }
+
+  .sidebar-section-label {
+    color: hsl(var(--sidebar-text));
+    @apply px-4 py-2 text-[10px] font-semibold uppercase tracking-widest;
+    opacity: 0.5;
+  }
+
+  .sidebar-item {
+    color: hsl(var(--sidebar-text));
+    @apply flex items-center gap-3 mx-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer;
+  }
+
+  .sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: hsl(var(--sidebar-text-hover));
+  }
+
+  .sidebar-item.active {
+    background: hsl(var(--sidebar-active-bg));
+    color: hsl(var(--sidebar-active-text));
+    @apply font-semibold;
+  }
+
+  .sidebar-item.active .sidebar-icon {
+    color: hsl(var(--teal-light));
+    opacity: 1;
+  }
+
+  .sidebar-icon {
+    @apply h-4 w-4 flex-shrink-0;
+    opacity: 0.8;
+  }
+
+  .sidebar-footer {
+    border-top: 1px solid hsl(var(--sidebar-border));
+    @apply p-4 mt-auto space-y-3;
+  }
+
+  /* ── Top Bar ─────────────────────────────────────────── */
+  .topbar {
+    @apply fixed top-0 right-0 z-30 h-14 flex items-center justify-between px-6 bg-background/95 backdrop-blur-sm;
+    left: 16rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .topbar-title {
+    font-family: 'Playfair Display', serif;
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  /* ── Page Layout ─────────────────────────────────────── */
+  .page-shell {
+    @apply ml-64 pt-14 min-h-screen;
+    background: hsl(210 20% 98%);
+  }
+
+  .page-content {
+    @apply p-6 max-w-screen-2xl mx-auto;
+  }
+
+  .page-header {
+    @apply flex items-start justify-between gap-4 mb-6;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    @apply text-2xl font-bold text-foreground tracking-tight;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  /* ── KPI Cards ───────────────────────────────────────── */
+  .kpi-grid {
+    @apply grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6;
+  }
+
+  .kpi-card {
+    @apply bg-card rounded-xl border p-5 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .kpi-icon-wrap {
+    @apply w-9 h-9 rounded-lg flex items-center justify-center mb-3;
+  }
+
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    @apply text-2xl font-bold text-foreground leading-none mb-1;
+  }
+
+  .kpi-label {
+    @apply text-xs font-medium text-muted-foreground uppercase tracking-wider;
+  }
+
+  .kpi-delta {
+    @apply text-xs font-medium mt-2 flex items-center gap-1;
+  }
+
+  .kpi-delta.up   { @apply text-emerald-600; }
+  .kpi-delta.down { @apply text-red-500; }
+
+  /* ── Section Cards ───────────────────────────────────── */
+  .section-card {
+    @apply bg-card rounded-xl border shadow-sm;
+  }
+
+  .section-card-header {
+    @apply flex items-center justify-between px-5 py-4;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .section-card-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .section-card-body {
+    @apply p-5;
+  }
+
+  /* ── Room Grid Cells ─────────────────────────────────── */
+  .room-cell {
+    @apply relative rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-150 select-none text-center;
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .room-cell:hover {
+    @apply scale-110 shadow-md z-10;
+    filter: brightness(1.08);
+  }
+
+  .room-cell.OCCUPIED     { background: #1a6b6b; color: #fff; }
+  .room-cell.VACANT       { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+  .room-cell.DIRTY        { background: #f59e0b; color: #fff; }
+  .room-cell.DUE_IN       { background: #3b82f6; color: #fff; }
+  .room-cell.DUE_OUT      { background: #f97316; color: #fff; }
+  .room-cell.OUT_OF_ORDER { background: #ef4444; color: #fff; }
+  .room-cell.CLEAN        { background: #10b981; color: #fff; }
+  .room-cell.IN_PROGRESS  { background: #f59e0b; color: #fff; }
+  .room-cell.INSPECTED    { background: #6366f1; color: #fff; }
+
+  .room-cell-initials {
+    @apply absolute bottom-1 right-1 text-[9px] font-semibold opacity-90;
+  }
+
+  /* ── Status Badges ───────────────────────────────────── */
+  .status-confirmed   { @apply bg-blue-50 text-blue-700 border border-blue-200; }
+  .status-checked-in  { @apply bg-emerald-50 text-emerald-700 border border-emerald-200; }
+  .status-checked-out { @apply bg-slate-100 text-slate-600 border border-slate-200; }
+  .status-cancelled   { @apply bg-red-50 text-red-600 border border-red-200; }
+  .status-no-show     { @apply bg-orange-50 text-orange-700 border border-orange-200; }
+
+  /* ── Channel Badges ──────────────────────────────────── */
+  .channel-booking   { @apply bg-blue-50 text-blue-700 border border-blue-100; }
+  .channel-expedia   { @apply bg-yellow-50 text-yellow-800 border border-yellow-100; }
+  .channel-direct    { @apply bg-teal-50 text-teal-700 border border-teal-100; }
+  .channel-airbnb    { @apply bg-rose-50 text-rose-700 border border-rose-100; }
+  .channel-corporate { @apply bg-purple-50 text-purple-700 border border-purple-100; }
+  .channel-walkin    { @apply bg-slate-100 text-slate-600 border border-slate-200; }
+
+  /* ── Severity Badges ─────────────────────────────────── */
+  .severity-high   { @apply bg-red-50 text-red-700 border border-red-200; }
+  .severity-medium { @apply bg-amber-50 text-amber-700 border border-amber-200; }
+  .severity-low    { @apply bg-slate-100 text-slate-600 border border-slate-200; }
+
+  /* ── Task Status ─────────────────────────────────────── */
+  .task-pending     { @apply bg-slate-100 text-slate-600; }
+  .task-in-progress { @apply bg-amber-50 text-amber-700; }
+  .task-inspected   { @apply bg-indigo-50 text-indigo-700; }
+  .task-done        { @apply bg-emerald-50 text-emerald-700; }
+
+  /* ── Alert Severities ────────────────────────────────── */
+  .alert-high   { @apply border-l-[3px] border-red-500 bg-red-50/50; }
+  .alert-medium { @apply border-l-[3px] border-amber-400 bg-amber-50/50; }
+  .alert-low    { @apply border-l-[3px] border-slate-300 bg-slate-50/50; }
+
+  /* ── Data Table ──────────────────────────────────────── */
+  .data-table thead tr { @apply bg-muted/50; }
+
+  .data-table th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 text-sm text-foreground;
+  }
+
+  .data-table tbody tr {
+    @apply border-b border-border/50 transition-colors;
+  }
+
+  .data-table tbody tr:hover { @apply bg-muted/30; }
+
+  .data-table tbody tr:last-child { @apply border-0; }
+
+  /* ── Kanban Board ────────────────────────────────────── */
+  .kanban-board {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-4;
+  }
+
+  .kanban-column {
+    @apply bg-muted/40 rounded-xl p-3 border border-border/50;
+  }
+
+  .kanban-column-header {
+    @apply flex items-center justify-between mb-3 px-1;
+  }
+
+  .kanban-column-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .kanban-card {
+    @apply bg-card rounded-lg border p-3.5 mb-2.5 shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer;
+  }
+
+  /* ── Checklist ───────────────────────────────────────── */
+  .checklist-category {
+    @apply mb-4;
+  }
+
+  .checklist-category-header {
+    @apply flex items-center justify-between mb-2 pb-1.5;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .checklist-category-title {
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider;
+  }
+
+  .checklist-item {
+    @apply flex items-start gap-3 py-2 px-1 rounded-md hover:bg-muted/40 transition-colors cursor-pointer;
+  }
+
+  .checklist-item.checked .checklist-label {
+    @apply line-through text-muted-foreground;
+  }
+
+  .checklist-label {
+    @apply text-sm text-foreground leading-relaxed;
+  }
+
+  .checklist-timestamp {
+    @apply text-[11px] text-muted-foreground mt-0.5;
+  }
+
+  /* ── Progress Bar ────────────────────────────────────── */
+  .progress-wrap {
+    @apply w-full bg-muted rounded-full overflow-hidden;
+    height: 6px;
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-500;
+    background: hsl(var(--teal));
+  }
+
+  .progress-fill.complete { background: #10b981; }
+
+  /* ── Staff Card ──────────────────────────────────────── */
+  .staff-card {
+    @apply bg-card rounded-xl border shadow-sm flex-shrink-0 flex flex-col;
+    width: 280px;
+  }
+
+  .staff-card-header {
+    @apply p-4;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .staff-card-body {
+    @apply p-2 space-y-0.5 flex-1;
+  }
+
+  .staff-card-footer {
+    @apply px-4 py-3 text-xs text-muted-foreground;
+    border-top: 1px solid hsl(var(--border));
+  }
+
+  .staff-room-row {
+    @apply flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer text-sm;
+  }
+
+  /* ── Form Elements ───────────────────────────────────── */
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .form-row {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  .field-label {
+    @apply text-sm font-medium text-foreground mb-1.5 block;
+  }
+
+  .field-hint {
+    @apply text-xs text-muted-foreground mt-1;
+  }
+
+  /* ── Empty States ────────────────────────────────────── */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-16 text-center;
+  }
+
+  .empty-state-icon {
+    @apply w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4 text-muted-foreground;
+  }
+
+  .empty-state-title {
+    @apply text-sm font-semibold text-foreground mb-1;
+  }
+
+  .empty-state-desc {
+    @apply text-sm text-muted-foreground max-w-xs;
+  }
+
+  /* ── Tab Bar ─────────────────────────────────────────── */
+  .module-tabs {
+    @apply flex flex-wrap items-center gap-1 bg-muted/60 rounded-lg p-1 border border-border/50;
+  }
+
+  .module-tab {
+    @apply flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-muted-foreground transition-all duration-150 cursor-pointer;
+  }
+
+  .module-tab.active {
+    @apply bg-card text-foreground shadow-sm;
+  }
+
+  .module-tab:hover:not(.active) {
+    @apply bg-muted text-foreground;
+  }
+
+  .tab-badge {
+    @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold;
+  }
+
+  /* ── Login Page ──────────────────────────────────────── */
+  .login-shell {
+    @apply min-h-screen flex;
+  }
+
+  .login-left {
+    @apply hidden md:flex w-[42%] flex-col justify-between p-10 text-white;
+    background: hsl(var(--navy));
+  }
+
+  .login-right {
+    @apply flex-1 flex items-center justify-center p-6 md:p-10 bg-background;
+  }
+
+  .login-card {
+    @apply w-full max-w-[400px];
+  }
+
+  /* ── Drawer (Sheet) ──────────────────────────────────── */
+  .task-drawer-header {
+    @apply flex items-start justify-between p-5 pb-4;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .task-drawer-body {
+    @apply flex-1 overflow-y-auto p-5 space-y-5;
+  }
+
+  /* ── Lost & Found ────────────────────────────────────── */
+  .laf-status-unclaimed { @apply bg-amber-50 text-amber-700 border border-amber-200; }
+  .laf-status-claimed   { @apply bg-emerald-50 text-emerald-700 border border-emerald-200; }
+  .laf-status-returned  { @apply bg-teal-50 text-teal-700 border border-teal-100; }
+  .laf-status-donated   { @apply bg-slate-100 text-slate-500; }
+
+  /* ── Supply Request ──────────────────────────────────── */
+  .urgency-urgent { @apply bg-red-50 text-red-700 border border-red-200; }
+  .urgency-normal { @apply bg-slate-100 text-slate-600 border border-slate-200; }
+
+  /* ── Night Audit Button ──────────────────────────────── */
+  .night-audit-btn {
+    background: hsl(var(--gold));
+    color: hsl(var(--navy));
+    @apply w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-150 hover:opacity-90 active:scale-[0.98];
+  }
+
+  /* ── Scrollbars ──────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }
 
-/* ── Print styles (Housekeeping assignment sheet) ──────────── */
+/* ── Print Styles (Housekeeping assignment sheet) ─────── */
 @media print {
   .sidebar,
   .topbar,
@@ -34,13 +504,16 @@
     display: none !important;
   }
 
-  body {
-    background: #ffffff !important;
-    color: #0f1c2e !important;
+  body { background: #ffffff !important; }
+
+  .page-shell {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .page-wrapper {
-    margin: 0 !important;
+  .page-content {
+    padding: 0 !important;
+    max-width: none !important;
   }
 
   .print-assignment-sheet {

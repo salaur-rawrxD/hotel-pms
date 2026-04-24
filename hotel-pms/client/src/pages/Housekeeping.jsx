@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react";
-import { Tab } from "@headlessui/react";
-import clsx from "clsx";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import {
-  BedDouble,
   Eye,
   Home,
   Map as MapIcon,
@@ -22,6 +19,13 @@ import MaintenanceBoard from "../components/housekeeping/MaintenanceBoard.jsx";
 import RoomTaskDrawer from "../components/housekeeping/RoomTaskDrawer.jsx";
 import StaffAssignmentBoard from "../components/housekeeping/StaffAssignmentBoard.jsx";
 import SupplyRequestForm from "../components/housekeeping/SupplyRequestForm.jsx";
+import { Button } from "../components/ui/button.jsx";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs.jsx";
 import {
   useAssignments,
   useInspectionQueue,
@@ -29,38 +33,6 @@ import {
   useRefreshHousekeeping,
 } from "../hooks/useHousekeeping.js";
 import { formatDate } from "../utils/formatDate.js";
-
-function TabButton({ icon: Icon, label, badge, badgeTone = "blue", selected }) {
-  const toneClass =
-    badgeTone === "rose"
-      ? "bg-rose-500 text-white"
-      : badgeTone === "amber"
-      ? "bg-amber-500 text-white"
-      : "bg-blue-500 text-white";
-  return (
-    <div
-      className={clsx(
-        "group inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none",
-        selected
-          ? "bg-white text-navy-900 shadow-sm ring-1 ring-slate-200"
-          : "text-slate-600 hover:bg-white/60 hover:text-navy-900",
-      )}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-      {typeof badge === "number" && badge > 0 && (
-        <span
-          className={clsx(
-            "ml-0.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-            toneClass,
-          )}
-        >
-          {badge}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function PrintAssignmentSheet({ data }) {
   if (!data) return null;
@@ -152,121 +124,98 @@ export default function Housekeeping() {
   };
 
   const handleAssignRoom = (room) => {
-    // A lightweight assign flow — just toast-and-hint for now; a full modal
-    // would take a staff picker. The assign endpoint is fully wired up.
-    toast(`Select a staff member to assign Room ${room.number}`, { icon: "👷" });
+    toast(`Select a staff member to assign Room ${room.number}`);
   };
 
   return (
-    <div className="page-wrapper space-y-6 pb-8">
-      {/* Page header */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between no-print">
+    <div className="space-y-6 pb-8">
+      <header className="page-header no-print">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-navy-900">
-            Housekeeping
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Today's operations — {formatDate(new Date())}
+          <h1 className="page-title">Housekeeping</h1>
+          <p className="page-subtitle">
+            Operations board · {formatDate(new Date())}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-navy-900 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
           >
-            <RefreshCw
-              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={refreshing ? "animate-spin" : ""} />
             Refresh
-          </button>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-800"
-          >
-            <Printer className="h-4 w-4" />
-            Print Assignment Sheet
-          </button>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer />
+            Print
+          </Button>
         </div>
       </header>
 
-      {/* Print-only view: assignment sheet */}
       <PrintAssignmentSheet data={assignments.data} />
 
-      {/* Tab navigation */}
-      <Tab.Group>
-        <Tab.List className="no-print flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton icon={Home} label="Assignments" selected={selected} />
+      <Tabs defaultValue="assignments" className="no-print">
+        <TabsList className="flex flex-wrap">
+          <TabsTrigger value="assignments">
+            <Home className="h-4 w-4" />
+            Assignments
+          </TabsTrigger>
+          <TabsTrigger value="floor-map">
+            <MapIcon className="h-4 w-4" />
+            Floor Map
+          </TabsTrigger>
+          <TabsTrigger value="inspection">
+            <Eye className="h-4 w-4" />
+            Inspection
+            {inspectionBadge > 0 && (
+              <span className="tab-badge bg-blue-500 text-white">
+                {inspectionBadge}
+              </span>
             )}
-          </Tab>
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton icon={MapIcon} label="Floor Map" selected={selected} />
+          </TabsTrigger>
+          <TabsTrigger value="maintenance">
+            <Wrench className="h-4 w-4" />
+            Maintenance
+            {maintBadge > 0 && (
+              <span className="tab-badge bg-rose-500 text-white">
+                {maintBadge}
+              </span>
             )}
-          </Tab>
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton
-                icon={Eye}
-                label="Inspection Queue"
-                badge={inspectionBadge}
-                badgeTone="blue"
-                selected={selected}
-              />
-            )}
-          </Tab>
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton
-                icon={Wrench}
-                label="Maintenance"
-                badge={maintBadge}
-                badgeTone="rose"
-                selected={selected}
-              />
-            )}
-          </Tab>
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton icon={Search} label="Lost & Found" selected={selected} />
-            )}
-          </Tab>
-          <Tab as="button" className="focus:outline-none">
-            {({ selected }) => (
-              <TabButton icon={Package} label="Supplies" selected={selected} />
-            )}
-          </Tab>
-        </Tab.List>
+          </TabsTrigger>
+          <TabsTrigger value="lost-found">
+            <Search className="h-4 w-4" />
+            Lost &amp; Found
+          </TabsTrigger>
+          <TabsTrigger value="supplies">
+            <Package className="h-4 w-4" />
+            Supplies
+          </TabsTrigger>
+        </TabsList>
 
-        <Tab.Panels className="mt-6 no-print">
-          <Tab.Panel className="space-y-6 focus:outline-none">
-            <HousekeepingStats />
-            <StaffAssignmentBoard
-              onOpenTask={openDrawer}
-              onAssignRoom={handleAssignRoom}
-            />
-          </Tab.Panel>
-          <Tab.Panel className="focus:outline-none">
-            <FloorMapView onOpenTask={openDrawer} />
-          </Tab.Panel>
-          <Tab.Panel className="focus:outline-none">
-            <InspectionQueue />
-          </Tab.Panel>
-          <Tab.Panel className="focus:outline-none">
-            <MaintenanceBoard />
-          </Tab.Panel>
-          <Tab.Panel className="focus:outline-none">
-            <LostAndFoundLog />
-          </Tab.Panel>
-          <Tab.Panel className="focus:outline-none">
-            <SupplyRequestForm />
-          </Tab.Panel>
-        </Tab.Panels>
-      </Tab.Group>
+        <TabsContent value="assignments" className="space-y-6">
+          <HousekeepingStats />
+          <StaffAssignmentBoard
+            onOpenTask={openDrawer}
+            onAssignRoom={handleAssignRoom}
+          />
+        </TabsContent>
+        <TabsContent value="floor-map">
+          <FloorMapView onOpenTask={openDrawer} />
+        </TabsContent>
+        <TabsContent value="inspection">
+          <InspectionQueue />
+        </TabsContent>
+        <TabsContent value="maintenance">
+          <MaintenanceBoard />
+        </TabsContent>
+        <TabsContent value="lost-found">
+          <LostAndFoundLog />
+        </TabsContent>
+        <TabsContent value="supplies">
+          <SupplyRequestForm />
+        </TabsContent>
+      </Tabs>
 
       <RoomTaskDrawer
         taskId={selectedTaskId}

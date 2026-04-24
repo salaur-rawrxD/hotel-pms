@@ -1,36 +1,29 @@
-import clsx from "clsx";
-import { useState } from "react";
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
-export default function Tooltip({ content, children, side = "top", className }) {
-  const [open, setOpen] = useState(false);
+import { cn } from "../../lib/utils.js";
 
-  const positions = {
-    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
-    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
-    left: "right-full top-1/2 -translate-y-1/2 mr-2",
-    right: "left-full top-1/2 -translate-y-1/2 ml-2",
-  };
+const TooltipProvider = TooltipPrimitive.Provider;
+const Tooltip = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
 
+const TooltipContent = React.forwardRef(function TooltipContent(
+  { className, sideOffset = 4, ...props },
+  ref,
+) {
   return (
-    <span
-      className={clsx("relative inline-flex", className)}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
-      onBlur={() => setOpen(false)}
-    >
-      {children}
-      {open && content && (
-        <span
-          role="tooltip"
-          className={clsx(
-            "pointer-events-none absolute z-50 whitespace-nowrap rounded-md border border-navy-700 bg-navy-900 px-2 py-1 text-xs text-slate-200 shadow-lg",
-            positions[side],
-          )}
-        >
-          {content}
-        </span>
-      )}
-    </span>
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        className={cn(
+          "z-50 overflow-hidden rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          className,
+        )}
+        {...props}
+      />
+    </TooltipPrimitive.Portal>
   );
-}
+});
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };

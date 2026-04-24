@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 import AlertsPanel from "../components/dashboard/AlertsPanel.jsx";
 import ArrivalsList from "../components/dashboard/ArrivalsList.jsx";
 import KPIBar from "../components/dashboard/KPIBar.jsx";
 import RevenueChart from "../components/dashboard/RevenueChart.jsx";
 import RoomGrid from "../components/dashboard/RoomGrid.jsx";
+import { Button } from "../components/ui/button.jsx";
 import { useAuthStore } from "../store/authStore.js";
 import {
   useAlerts,
@@ -39,7 +40,6 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Advance the "last updated" stamp whenever any dashboard query finishes.
   useEffect(() => {
     const anyFetching =
       summary.isFetching ||
@@ -74,54 +74,49 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-6">
       {/* Header */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-navy-900">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">
             {greeting}, <span className="font-semibold">{displayName}</span>
-            <span className="text-slate-300"> · </span>
+            <span className="text-border"> · </span>
             <span>{formatDate(new Date())}</span>
           </p>
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-navy-900 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
         >
-          <RefreshCw
-            className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-          />
+          <RefreshCw className={refreshing ? "animate-spin" : ""} />
           Refresh
-        </button>
-      </header>
+        </Button>
+      </div>
 
-      {/* Row 1 — KPIs */}
+      {/* KPI bar */}
       <KPIBar summary={summary.data} isLoading={summary.isLoading} />
 
-      {/* Row 2 — Room grid + Alerts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
-        <RoomGrid floors={grid.data} isLoading={grid.isLoading} />
-        <AlertsPanel alerts={alerts.data} isLoading={alerts.isLoading} />
+      {/* Main grid */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+        <div className="space-y-4 xl:col-span-3">
+          <RoomGrid floors={grid.data} isLoading={grid.isLoading} />
+          <RevenueChart data={chart.data} isLoading={chart.isLoading} />
+        </div>
+        <div className="space-y-4 xl:col-span-2">
+          <AlertsPanel alerts={alerts.data} isLoading={alerts.isLoading} />
+          <ArrivalsList
+            arrivals={arrivals.data}
+            departures={departures.data}
+            arrivalsLoading={arrivals.isLoading}
+            departuresLoading={departures.isLoading}
+            layout="stacked"
+          />
+        </div>
       </div>
 
-      {/* Row 3 — Chart + Arrivals/Departures */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[11fr_9fr]">
-        <RevenueChart data={chart.data} isLoading={chart.isLoading} />
-        <ArrivalsList
-          arrivals={arrivals.data}
-          departures={departures.data}
-          arrivalsLoading={arrivals.isLoading}
-          departuresLoading={departures.isLoading}
-          layout="stacked"
-        />
-      </div>
-
-      {/* Footer note */}
-      <p className="text-right text-[11px] text-slate-400">
+      <p className="text-right text-[11px] text-muted-foreground">
         Auto-refreshes every 60s · Last updated {formatTime(lastUpdated)}
       </p>
     </div>

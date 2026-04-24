@@ -1,10 +1,34 @@
-export default function PagePlaceholder({ title }) {
+import { Construction } from "lucide-react";
+
+export default function PagePlaceholder({
+  title,
+  subtitle = "This module is coming soon",
+  icon: Icon = Construction,
+  description,
+}) {
   return (
-    <div className="flex h-full min-h-[50vh] flex-col items-start justify-start">
-      <h1 className="font-serif text-3xl font-bold text-navy-900">{title}</h1>
-      <p className="mt-2 text-sm text-slate-500">
-        This module is coming soon.
-      </p>
+    <div className="space-y-6 pb-6">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">{title}</h1>
+          <p className="page-subtitle">{subtitle}</p>
+        </div>
+      </div>
+
+      <div className="section-card">
+        <div className="section-card-body">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Icon className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="empty-state-title">Coming Soon</p>
+            <p className="empty-state-desc">
+              {description ??
+                `The ${title} module is currently being built.`}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

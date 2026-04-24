@@ -7,39 +7,39 @@ import {
   X,
 } from "lucide-react";
 
+import { cn } from "../../lib/utils.js";
 import { formatRelative } from "../../utils/formatDate.js";
+import { Button } from "../ui/button.jsx";
 
-const SEVERITY_STYLES = {
-  high:   { border: "#ef4444", bg: "#fef2f2", icon: AlertTriangle, iconColor: "#dc2626" },
-  medium: { border: "#f59e0b", bg: "#fffbeb", icon: Bell,          iconColor: "#b45309" },
-  low:    { border: "#94a3b8", bg: "#f8fafc", icon: Info,          iconColor: "#64748b" },
+const SEVERITY_META = {
+  high:   { cls: "alert-high",   Icon: AlertTriangle, iconClass: "text-red-600" },
+  medium: { cls: "alert-medium", Icon: Bell,          iconClass: "text-amber-600" },
+  low:    { cls: "alert-low",    Icon: Info,          iconClass: "text-slate-500" },
 };
 
 function AlertItem({ alert, onDismiss }) {
-  const s = SEVERITY_STYLES[alert.severity] ?? SEVERITY_STYLES.low;
-  const Icon = s.icon;
+  const meta = SEVERITY_META[alert.severity] ?? SEVERITY_META.low;
+  const Icon = meta.Icon;
   return (
-    <li
-      className="flex items-start gap-3 rounded-lg border-l-4 px-3 py-2.5"
-      style={{ borderLeftColor: s.border, background: s.bg }}
-    >
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" style={{ color: s.iconColor }} />
+    <li className={cn("flex items-start gap-3 rounded-md px-3 py-2.5", meta.cls)}>
+      <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", meta.iconClass)} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-navy-900">{alert.message}</p>
+        <p className="text-sm font-medium text-foreground">{alert.message}</p>
         {alert.createdAt && (
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             {formatRelative(alert.createdAt)}
           </p>
         )}
       </div>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
         onClick={() => onDismiss(alert.id)}
         aria-label="Dismiss alert"
-        className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
       >
         <X className="h-4 w-4" />
-      </button>
+      </Button>
     </li>
   );
 }
@@ -47,8 +47,6 @@ function AlertItem({ alert, onDismiss }) {
 export default function AlertsPanel({ alerts, isLoading }) {
   const [dismissed, setDismissed] = useState(() => new Set());
 
-  // When the list from the server changes, drop dismissals that no longer
-  // appear in the feed so they reappear if the condition recurs later.
   useEffect(() => {
     if (!alerts) return;
     setDismissed((prev) => {
@@ -64,7 +62,6 @@ export default function AlertsPanel({ alerts, isLoading }) {
     () => (alerts ?? []).filter((a) => !dismissed.has(a.id)),
     [alerts, dismissed],
   );
-
   const highCount = visible.filter((a) => a.severity === "high").length;
 
   const dismiss = (id) =>
@@ -75,40 +72,39 @@ export default function AlertsPanel({ alerts, isLoading }) {
     });
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <header className="mb-4 flex items-center justify-between">
-        <h3 className="font-serif text-lg font-semibold text-navy-900">
-          Action Required
-        </h3>
+    <section className="section-card flex h-full flex-col">
+      <header className="section-card-header">
+        <h3 className="section-card-title">Action Required</h3>
         {highCount > 0 && (
-          <span
-            className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold"
-            style={{ background: "#fee2e2", color: "#991b1b" }}
-          >
+          <span className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
             {highCount}
           </span>
         )}
       </header>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
-          ))}
-        </div>
-      ) : visible.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-          <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-          <p className="mt-2 text-sm font-medium text-navy-900">All clear</p>
-          <p className="mt-0.5 text-xs text-slate-500">No action needed</p>
-        </div>
-      ) : (
-        <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1 scrollbar-thin">
-          {visible.map((a) => (
-            <AlertItem key={a.id} alert={a} onDismiss={dismiss} />
-          ))}
-        </ul>
-      )}
+      <div className="section-card-body flex-1">
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-14 animate-pulse rounded-md bg-muted" />
+            ))}
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="empty-state py-10">
+            <div className="empty-state-icon bg-emerald-50">
+              <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            </div>
+            <p className="empty-state-title">All clear</p>
+            <p className="empty-state-desc">No action needed right now.</p>
+          </div>
+        ) : (
+          <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+            {visible.map((a) => (
+              <AlertItem key={a.id} alert={a} onDismiss={dismiss} />
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }
