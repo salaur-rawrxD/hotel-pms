@@ -1,10 +1,34 @@
-import { Fragment, useMemo, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import clsx from "clsx";
-import toast from "react-hot-toast";
-import { Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 
-import { useAuthStore } from "../../store/authStore.js";
+import { Button } from "../ui/button.jsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog.jsx";
+import { Input } from "../ui/input.jsx";
+import { Label } from "../ui/label.jsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select.jsx";
+import { Skeleton } from "../ui/skeleton.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table.jsx";
+import { Textarea } from "../ui/textarea.jsx";
+import { cn } from "../../lib/utils.js";
 import {
   useCreateLostAndFound,
   useFloorMap,
@@ -52,153 +76,107 @@ function LogItemModal({ open, onClose, rooms }) {
   };
 
   return (
-    <Transition show={open} as={Fragment}>
-      <Dialog onClose={onClose} className="relative z-50">
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-150"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-navy-900/40 backdrop-blur-sm" />
-        </Transition.Child>
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-200"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-150"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-              <div className="mb-4 flex items-center justify-between">
-                <Dialog.Title className="font-serif text-xl font-bold text-navy-900">
-                  Log Found Item
-                </Dialog.Title>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <form onSubmit={submit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Room *
-                  </label>
-                  <select
-                    value={form.roomId}
-                    onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  >
-                    <option value="">Select a room…</option>
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        Room {r.number} · Floor {r.floor}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Item description *
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={form.description}
-                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    placeholder="e.g. Blue iPhone charger, Apple brand"
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Found by *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.foundBy}
-                      onChange={(e) => setForm((f) => ({ ...f, foundBy: e.target.value }))}
-                      placeholder="Staff name"
-                      className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Date found
-                    </label>
-                    <input
-                      type="date"
-                      value={form.foundAt}
-                      onChange={(e) => setForm((f) => ({ ...f, foundAt: e.target.value }))}
-                      className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Guest name (if known)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.guestName}
-                    onChange={(e) => setForm((f) => ({ ...f, guestName: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Notes
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={form.notes}
-                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={create.isPending}
-                    className="rounded-md bg-teal px-3 py-2 text-sm font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
-                  >
-                    Log Item
-                  </button>
-                </div>
-              </form>
-            </Dialog.Panel>
-          </Transition.Child>
-        </div>
-      </Dialog>
-    </Transition>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-xl">
+            Log Found Item
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <Label className="field-label">Room *</Label>
+            <Select
+              value={form.roomId}
+              onValueChange={(v) => setForm((f) => ({ ...f, roomId: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a room…" />
+              </SelectTrigger>
+              <SelectContent>
+                {rooms.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    Room {r.number} · Floor {r.floor}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="field-label">Item description *</Label>
+            <Textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
+              placeholder="e.g. Blue iPhone charger, Apple brand"
+            />
+          </div>
+          <div className="form-row">
+            <div>
+              <Label className="field-label">Found by *</Label>
+              <Input
+                type="text"
+                value={form.foundBy}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, foundBy: e.target.value }))
+                }
+                placeholder="Staff name"
+              />
+            </div>
+            <div>
+              <Label className="field-label">Date found</Label>
+              <Input
+                type="date"
+                value={form.foundAt}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, foundAt: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="field-label">Guest name (if known)</Label>
+            <Input
+              type="text"
+              value={form.guestName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, guestName: e.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="field-label">Notes</Label>
+            <Textarea
+              rows={2}
+              value={form.notes}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, notes: e.target.value }))
+              }
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              Log Item
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function StatusBadge({ status }) {
+function LafStatusBadge({ status }) {
   const meta = LF_STATUS_META[status] ?? LF_STATUS_META.UNCLAIMED;
   return (
     <span
-      className={clsx(
+      className={cn(
         "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-        meta.bg,
-        meta.text,
+        meta.cls,
       )}
     >
       {meta.label}
@@ -214,59 +192,65 @@ function RowActions({ item }) {
   if (item.status === "UNCLAIMED") {
     return showClaim ? (
       <div className="flex items-center gap-1.5">
-        <input
-          type="text"
+        <Input
           placeholder="Guest name"
           value={guestName}
           onChange={(e) => setGuestName(e.target.value)}
-          className="w-28 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
+          className="h-8 w-32 text-xs"
         />
-        <button
-          type="button"
+        <Button
+          size="sm"
+          className="h-8 bg-emerald-600 text-white hover:bg-emerald-700"
           onClick={async () => {
             if (!guestName.trim()) return toast.error("Guest name required");
-            await update.mutateAsync({ id: item.id, status: "CLAIMED", guestName });
+            await update.mutateAsync({
+              id: item.id,
+              status: "CLAIMED",
+              guestName,
+            });
             toast.success("Marked as claimed");
             setShowClaim(false);
             setGuestName("");
           }}
-          className="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
         >
           Save
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8"
           onClick={() => setShowClaim(false)}
-          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     ) : (
-      <button
-        type="button"
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-8 border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
         onClick={() => setShowClaim(true)}
-        className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-200"
       >
         Mark Claimed
-      </button>
+      </Button>
     );
   }
   if (item.status === "CLAIMED") {
     return (
-      <button
-        type="button"
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-8 border-teal/30 bg-teal/10 text-teal hover:bg-teal/20"
         onClick={async () => {
           await update.mutateAsync({ id: item.id, status: "RETURNED" });
           toast.success("Marked as returned");
         }}
-        className="rounded-md bg-teal/10 px-2 py-1 text-xs font-semibold text-teal-dark hover:bg-teal/20"
       >
         Mark Returned
-      </button>
+      </Button>
     );
   }
-  return <span className="text-xs text-slate-400">—</span>;
+  return <span className="text-xs text-muted-foreground">—</span>;
 }
 
 export default function LostAndFoundLog() {
@@ -286,7 +270,7 @@ export default function LostAndFoundLog() {
     return (
       <div className="space-y-2">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+          <Skeleton key={i} className="h-14 rounded-lg" />
         ))}
       </div>
     );
@@ -298,70 +282,70 @@ export default function LostAndFoundLog() {
     <div>
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-navy-900">
+          <h2 className="font-serif text-xl font-bold text-foreground">
             Lost &amp; Found
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {items.length} item{items.length === 1 ? "" : "s"} logged
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpenModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-teal px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
-        >
-          <Plus className="h-4 w-4" />
+        <Button onClick={() => setOpenModal(true)}>
+          <Plus />
           Log Found Item
-        </button>
+        </Button>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-4 py-2.5">Date Found</th>
-              <th className="px-4 py-2.5">Room</th>
-              <th className="px-4 py-2.5">Description</th>
-              <th className="px-4 py-2.5">Found By</th>
-              <th className="px-4 py-2.5">Status</th>
-              <th className="px-4 py-2.5">Guest</th>
-              <th className="px-4 py-2.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <div className="section-card overflow-hidden">
+        <Table className="data-table">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date Found</TableHead>
+              <TableHead>Room</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Found By</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Guest</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((it) => (
-              <tr key={it.id} className="hover:bg-slate-50/60">
-                <td className="px-4 py-3 text-slate-600">
+              <TableRow key={it.id}>
+                <TableCell className="text-muted-foreground">
                   {formatDateShort(it.foundAt)}
-                </td>
-                <td className="px-4 py-3 font-mono font-semibold text-navy-900">
+                </TableCell>
+                <TableCell className="font-mono font-semibold text-foreground">
                   {it.roomNumber}
-                </td>
-                <td className="px-4 py-3 text-navy-900">{it.description}</td>
-                <td className="px-4 py-3 text-slate-600">{it.foundBy}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={it.status} />
-                </td>
-                <td className="px-4 py-3 text-slate-600">
+                </TableCell>
+                <TableCell className="text-foreground">
+                  {it.description}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {it.foundBy}
+                </TableCell>
+                <TableCell>
+                  <LafStatusBadge status={it.status} />
+                </TableCell>
+                <TableCell className="text-muted-foreground">
                   {it.guestName ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-right">
+                </TableCell>
+                <TableCell className="text-right">
                   <RowActions item={it} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {items.length === 0 && (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={7}
-                  className="px-4 py-10 text-center text-sm text-slate-400"
+                  className="py-10 text-center text-sm text-muted-foreground"
                 >
                   Nothing logged yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <LogItemModal

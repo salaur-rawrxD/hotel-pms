@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { ShieldOff } from "lucide-react";
 
+import { Button } from "../components/ui/button.jsx";
 import { useAuthStore } from "../store/authStore.js";
 
 export default function Unauthorized() {
@@ -8,23 +10,18 @@ export default function Unauthorized() {
   const logout = useAuthStore((s) => s.logout);
 
   return (
-    <div
-      className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
-      style={{ background: "#f9f6f0" }}
-    >
-      <p
-        className="font-serif font-black leading-none"
-        style={{ fontSize: "6rem", color: "#c9a84c" }}
-      >
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
+        <ShieldOff className="h-10 w-10 text-red-500/70" />
+      </div>
+
+      <p className="font-serif text-5xl font-bold leading-none text-foreground">
         403
       </p>
-      <h1
-        className="mt-3 font-serif text-2xl font-semibold"
-        style={{ color: "#0f1c2e" }}
-      >
+      <h1 className="mt-3 text-xl font-semibold text-foreground">
         Access Restricted
       </h1>
-      <p className="mt-2 max-w-md text-sm text-slate-600">
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">
         Your role
         {user?.role ? (
           <>
@@ -36,20 +33,10 @@ export default function Unauthorized() {
       </p>
 
       <div className="mt-6 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard")}
-          className="rounded-lg bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-dark"
-        >
-          Go to Dashboard
-        </button>
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="rounded-lg border border-slate-300 bg-transparent px-5 py-2.5 text-sm font-semibold text-navy-900 transition-colors hover:bg-slate-100"
-        >
+        <Button onClick={() => navigate("/dashboard")}>Go to Dashboard</Button>
+        <Button variant="outline" onClick={() => logout()}>
           Sign Out
-        </button>
+        </Button>
       </div>
     </div>
   );

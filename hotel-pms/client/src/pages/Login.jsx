@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import {
-  AlertTriangle,
+  AlertCircle,
   Building2,
   Check,
   Eye,
@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 
 import { useAuthStore } from "../store/authStore.js";
+import { Alert, AlertDescription } from "../components/ui/alert.jsx";
+import { Button } from "../components/ui/button.jsx";
+import { Input } from "../components/ui/input.jsx";
+import { Label } from "../components/ui/label.jsx";
+import { Separator } from "../components/ui/separator.jsx";
 
 const DEV_ACCOUNTS = [
   { role: "Admin",        icon: "👑", email: "admin@meridian.com" },
@@ -19,9 +24,9 @@ const DEV_ACCOUNTS = [
 ];
 
 const FEATURES = [
-  "Real-time room management",
+  "Full front desk operations",
   "500+ distribution channels",
-  "Automated yield optimization",
+  "Real-time housekeeping management",
 ];
 
 export default function Login() {
@@ -46,14 +51,12 @@ export default function Login() {
     return <Navigate to={redirectTo} replace />;
   }
 
-  function clearErrorOnEdit(setter) {
-    return (event) => {
-      setter(event.target.value);
-      if (error) setError(null);
-    };
-  }
+  const clearErrorOnEdit = (setter) => (event) => {
+    setter(event.target.value);
+    if (error) setError(null);
+  };
 
-  async function handleSubmit(event) {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -64,48 +67,49 @@ export default function Login() {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
-  function prefillAccount(account) {
+  const prefillAccount = (account) => {
     setEmail(account.email);
     setPassword("password123");
     setError(null);
-  }
+  };
 
   return (
-    <div className="flex min-h-screen">
-      {/* LEFT PANEL — 40% */}
-      <aside
-        className="relative hidden w-2/5 flex-col justify-between p-12 text-white md:flex"
-        style={{ background: "#0f1c2e" }}
-      >
-        <div className="flex flex-1 flex-col items-start justify-center gap-6">
+    <div className="login-shell">
+      {/* Left panel */}
+      <aside className="login-left">
+        <div>
           <div
-            className="grid h-16 w-16 place-items-center rounded-2xl"
-            style={{ backgroundColor: "rgba(201, 168, 76, 0.12)" }}
+            className="grid h-14 w-14 place-items-center rounded-2xl"
+            style={{ background: "hsl(var(--gold) / 0.15)" }}
           >
-            <Building2 className="h-8 w-8" style={{ color: "#c9a84c" }} />
+            <Building2 className="h-7 w-7" style={{ color: "hsl(var(--gold))" }} />
           </div>
-
           <h1
-            className="font-serif font-bold leading-none"
-            style={{ fontSize: "3rem", color: "#c9a84c" }}
+            className="mt-6 font-serif font-bold leading-none"
+            style={{ fontSize: "2.4rem", color: "#fff" }}
           >
-            The Meridian
+            Fair<span style={{ color: "hsl(var(--gold))" }}>bridge</span>
           </h1>
+          <p className="mt-2 text-sm tracking-wide text-white/50">
+            Hotel Management System
+          </p>
+        </div>
 
-          <p className="text-sm text-white/50">Hotel Management System</p>
-
-          <div className="h-px w-16" style={{ backgroundColor: "#c9a84c" }} />
-
+        <div className="space-y-5">
+          <div
+            className="h-px w-16"
+            style={{ background: "hsl(var(--gold) / 0.4)" }}
+          />
           <ul className="space-y-3">
             {FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-3 text-sm text-white/80">
                 <span
                   className="grid h-5 w-5 shrink-0 place-items-center rounded-full"
-                  style={{ backgroundColor: "rgba(201, 168, 76, 0.2)" }}
+                  style={{ background: "hsl(var(--teal) / 0.25)" }}
                 >
-                  <Check className="h-3 w-3" style={{ color: "#c9a84c" }} />
+                  <Check className="h-3 w-3 text-teal-light" />
                 </span>
                 {f}
               </li>
@@ -114,59 +118,42 @@ export default function Login() {
         </div>
 
         <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
-          FairCloud PMS v1.0
+          Fairbridge PMS · v1.0
         </p>
       </aside>
 
-      {/* RIGHT PANEL — 60% */}
-      <main
-        className="flex flex-1 items-center justify-center px-6 py-12"
-        style={{ background: "#f9f6f0" }}
-      >
-        <div className="w-full max-w-md">
-          <header className="mb-8">
-            <h2
-              className="font-serif font-bold"
-              style={{ fontSize: "2rem", color: "#0f1c2e" }}
-            >
+      {/* Right panel */}
+      <main className="login-right">
+        <div className="login-card">
+          <header>
+            <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground">
               Welcome back
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Sign in to The Meridian dashboard
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sign in to your dashboard
             </p>
           </header>
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
             <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-xs font-semibold text-navy-900"
-              >
-                Email address
-              </label>
-              <input
+              <Label htmlFor="email">Email address</Label>
+              <Input
                 ref={emailRef}
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="you@meridianhotel.com"
+                placeholder="you@fairbridgehotel.com"
                 value={email}
                 onChange={clearErrorOnEdit(setEmail)}
-                className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-navy-900 placeholder:text-slate-400 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/30"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-xs font-semibold text-navy-900"
-              >
-                Password
-              </label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -175,12 +162,14 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={clearErrorOnEdit(setPassword)}
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 pr-11 text-sm text-navy-900 placeholder:text-slate-400 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/30"
+                  className="pr-11"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1 h-8 w-8"
                   onClick={() => setShowPassword((s) => !s)}
-                  className="absolute inset-y-0 right-2 my-auto grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-navy-900"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -188,54 +177,58 @@ export default function Login() {
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                </button>
+                </Button>
               </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border-l-4 border-rose-500 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="leading-snug">{error}</span>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
-            <button
+            <Button
               type="submit"
+              size="lg"
+              className="w-full"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-dark focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Signing in…
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in…
                 </>
               ) : (
                 "Sign in to Dashboard"
               )}
-            </button>
+            </Button>
           </form>
 
           {import.meta.env.DEV && (
             <div className="mt-8">
               <div className="mb-3 flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-300/60" />
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  Quick access — dev accounts
+                <Separator className="flex-1" />
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Quick access — test accounts
                 </p>
-                <div className="h-px flex-1 bg-slate-300/60" />
+                <Separator className="flex-1" />
               </div>
-              <div className="grid gap-1.5">
+              <div className="grid gap-1.5 rounded-lg border bg-muted/30 p-2">
                 {DEV_ACCOUNTS.map((a) => (
                   <button
                     key={a.email}
                     type="button"
                     onClick={() => prefillAccount(a)}
-                    className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-xs transition-colors hover:border-teal/40 hover:bg-teal/5"
+                    className="flex items-center justify-between rounded-md border border-transparent bg-background px-3 py-2 text-left text-xs transition-colors hover:border-primary/30 hover:bg-primary/5"
                   >
                     <span className="flex items-center gap-2">
                       <span className="text-base leading-none">{a.icon}</span>
-                      <span className="font-semibold text-navy-900">{a.role}</span>
+                      <span className="font-semibold text-foreground">
+                        {a.role}
+                      </span>
                     </span>
-                    <span className="font-mono text-[11px] text-slate-500">
+                    <span className="font-mono text-[11px] text-muted-foreground">
                       {a.email}
                     </span>
                   </button>

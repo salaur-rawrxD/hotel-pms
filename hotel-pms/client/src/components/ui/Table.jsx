@@ -1,60 +1,90 @@
-import clsx from "clsx";
+import * as React from "react";
 
-export default function Table({ columns = [], rows = [], emptyMessage = "No data." }) {
+import { cn } from "../../lib/utils.js";
+
+const Table = React.forwardRef(function Table({ className, ...props }, ref) {
   return (
-    <div className="overflow-hidden rounded-xl border border-navy-700 bg-navy-800/40">
-      <div className="overflow-x-auto scrollbar-thin">
-        <table className="min-w-full divide-y divide-navy-700 text-left text-sm">
-          <thead className="bg-navy-900/60">
-            <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={clsx(
-                    "px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400",
-                    col.align === "right" && "text-right",
-                    col.align === "center" && "text-center",
-                  )}
-                >
-                  {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-navy-700/70">
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-4 py-10 text-center text-sm text-slate-500"
-                >
-                  {emptyMessage}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, rowIdx) => (
-                <tr
-                  key={row.id ?? rowIdx}
-                  className="transition-colors hover:bg-navy-800/80"
-                >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={clsx(
-                        "px-4 py-3 text-slate-200",
-                        col.align === "right" && "text-right",
-                        col.align === "center" && "text-center",
-                      )}
-                    >
-                      {col.render ? col.render(row) : row[col.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+    <div className="relative w-full overflow-auto">
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
     </div>
   );
-}
+});
+
+const TableHeader = React.forwardRef(function TableHeader({ className, ...props }, ref) {
+  return <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />;
+});
+
+const TableBody = React.forwardRef(function TableBody({ className, ...props }, ref) {
+  return <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
+});
+
+const TableFooter = React.forwardRef(function TableFooter({ className, ...props }, ref) {
+  return (
+    <tfoot
+      ref={ref}
+      className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+      {...props}
+    />
+  );
+});
+
+const TableRow = React.forwardRef(function TableRow({ className, ...props }, ref) {
+  return (
+    <tr
+      ref={ref}
+      className={cn(
+        "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+
+const TableHead = React.forwardRef(function TableHead({ className, ...props }, ref) {
+  return (
+    <th
+      ref={ref}
+      className={cn(
+        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+
+const TableCell = React.forwardRef(function TableCell({ className, ...props }, ref) {
+  return (
+    <td
+      ref={ref}
+      className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      {...props}
+    />
+  );
+});
+
+const TableCaption = React.forwardRef(function TableCaption({ className, ...props }, ref) {
+  return (
+    <caption
+      ref={ref}
+      className={cn("mt-4 text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  );
+});
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+};

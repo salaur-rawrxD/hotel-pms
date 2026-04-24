@@ -1,41 +1,27 @@
 import { useMemo } from "react";
 import {
-  BedDouble,
   CheckCircle2,
   Eye,
   Loader2,
+  Sparkles,
   Users,
   Wrench,
 } from "lucide-react";
 
+import { KPICard } from "../ui/kpi-card.jsx";
 import {
   useAssignments,
   useFloorMap,
   useMaintenanceRequests,
 } from "../../hooks/useHousekeeping.js";
 
-function StatCard({ icon: Icon, value, label, tint = "text-teal" }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <span className={`grid h-10 w-10 place-items-center rounded-lg bg-slate-50 ${tint}`}>
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="font-serif text-2xl font-bold leading-none text-navy-900">
-          {value}
-        </p>
-        <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function HousekeepingStats() {
   const assignments = useAssignments();
   const floorMap = useFloorMap();
   const maintenance = useMaintenanceRequests();
+
+  const isLoading =
+    assignments.isLoading || floorMap.isLoading || maintenance.isLoading;
 
   const stats = useMemo(() => {
     let dirty = 0;
@@ -57,24 +43,59 @@ export default function HousekeepingStats() {
     ).length;
     const staffOnDuty = (assignments.data?.assignments ?? []).length;
 
-    return {
-      dirty,
-      inProgress,
-      inspected,
-      done,
-      openMaint,
-      staffOnDuty,
-    };
+    return { dirty, inProgress, inspected, done, openMaint, staffOnDuty };
   }, [assignments.data, floorMap.data, maintenance.data]);
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-      <StatCard icon={BedDouble}    value={stats.dirty}        label="Rooms to Clean"    tint="text-amber-600" />
-      <StatCard icon={Loader2}      value={stats.inProgress}   label="In Progress"       tint="text-orange-600" />
-      <StatCard icon={Eye}          value={stats.inspected}    label="Awaiting Inspection" tint="text-blue-600" />
-      <StatCard icon={CheckCircle2} value={stats.done}         label="Completed Today"   tint="text-emerald-600" />
-      <StatCard icon={Wrench}       value={stats.openMaint}    label="Maintenance Open"  tint="text-rose-600" />
-      <StatCard icon={Users}        value={stats.staffOnDuty}  label="Staff on Duty"     tint="text-teal" />
+    <div className="kpi-grid">
+      <KPICard
+        title="Rooms to Clean"
+        value={stats.dirty}
+        icon={Sparkles}
+        iconBg="bg-amber-100"
+        iconColor="text-amber-600"
+        loading={isLoading}
+      />
+      <KPICard
+        title="In Progress"
+        value={stats.inProgress}
+        icon={Loader2}
+        iconBg="bg-orange-100"
+        iconColor="text-orange-600"
+        loading={isLoading}
+      />
+      <KPICard
+        title="For Inspection"
+        value={stats.inspected}
+        icon={Eye}
+        iconBg="bg-blue-50"
+        iconColor="text-blue-600"
+        loading={isLoading}
+      />
+      <KPICard
+        title="Completed"
+        value={stats.done}
+        icon={CheckCircle2}
+        iconBg="bg-emerald-50"
+        iconColor="text-emerald-600"
+        loading={isLoading}
+      />
+      <KPICard
+        title="Maintenance"
+        value={stats.openMaint}
+        icon={Wrench}
+        iconBg="bg-rose-50"
+        iconColor="text-rose-600"
+        loading={isLoading}
+      />
+      <KPICard
+        title="Staff on Duty"
+        value={stats.staffOnDuty}
+        icon={Users}
+        iconBg="bg-teal/10"
+        iconColor="text-teal"
+        loading={isLoading}
+      />
     </div>
   );
 }

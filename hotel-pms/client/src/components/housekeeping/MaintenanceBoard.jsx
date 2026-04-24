@@ -1,9 +1,26 @@
-import { Fragment, useMemo, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import clsx from "clsx";
-import toast from "react-hot-toast";
-import { Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 
+import { Button } from "../ui/button.jsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog.jsx";
+import { Input } from "../ui/input.jsx";
+import { Label } from "../ui/label.jsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select.jsx";
+import { Skeleton } from "../ui/skeleton.jsx";
+import { Textarea } from "../ui/textarea.jsx";
+import { cn } from "../../lib/utils.js";
 import { useAuthStore } from "../../store/authStore.js";
 import {
   useCreateMaintenanceRequest,
@@ -15,9 +32,9 @@ import { formatDateShort } from "../../utils/formatDate.js";
 import { daysBetween, SEVERITY_META } from "./helpers.js";
 
 const COLUMNS = [
-  { key: "OPEN",        label: "Open",         tint: "border-rose-200" },
-  { key: "IN_PROGRESS", label: "In Progress",  tint: "border-amber-200" },
-  { key: "RESOLVED",    label: "Resolved",     tint: "border-emerald-200" },
+  { key: "OPEN",        label: "Open" },
+  { key: "IN_PROGRESS", label: "In Progress" },
+  { key: "RESOLVED",    label: "Resolved" },
 ];
 
 function ReportIssueModal({ open, onClose, rooms }) {
@@ -49,118 +66,77 @@ function ReportIssueModal({ open, onClose, rooms }) {
   };
 
   return (
-    <Transition show={open} as={Fragment}>
-      <Dialog onClose={onClose} className="relative z-50">
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-150"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-navy-900/40 backdrop-blur-sm" />
-        </Transition.Child>
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-200"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-150"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-              <div className="mb-4 flex items-center justify-between">
-                <Dialog.Title className="font-serif text-xl font-bold text-navy-900">
-                  Report Maintenance Issue
-                </Dialog.Title>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <form onSubmit={submit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Room *
-                  </label>
-                  <select
-                    value={form.roomId}
-                    onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  >
-                    <option value="">Select a room…</option>
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        Room {r.number} · Floor {r.floor}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Description *
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={form.description}
-                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Severity
-                  </label>
-                  <select
-                    value={form.severity}
-                    onChange={(e) => setForm((f) => ({ ...f, severity: e.target.value }))}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Your name
-                  </label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={user?.name ?? ""}
-                    className="mt-1 w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-500"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={create.isPending}
-                    className="rounded-md bg-rose-500 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-600 disabled:opacity-60"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </Dialog.Panel>
-          </Transition.Child>
-        </div>
-      </Dialog>
-    </Transition>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-xl">
+            Report Maintenance Issue
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <Label className="field-label">Room *</Label>
+            <Select
+              value={form.roomId}
+              onValueChange={(v) => setForm((f) => ({ ...f, roomId: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a room…" />
+              </SelectTrigger>
+              <SelectContent>
+                {rooms.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    Room {r.number} · Floor {r.floor}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="field-label">Description *</Label>
+            <Textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="field-label">Severity</Label>
+            <Select
+              value={form.severity}
+              onValueChange={(v) => setForm((f) => ({ ...f, severity: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LOW">Low</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HIGH">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="field-label">Your name</Label>
+            <Input readOnly value={user?.name ?? ""} className="bg-muted/40" />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="destructive"
+              disabled={create.isPending}
+            >
+              Submit
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -184,103 +160,105 @@ function MaintCard({ request, isManager }) {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <div className="kanban-card">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-mono text-sm font-bold text-navy-900">
-            Room {request.roomNumber}
-            <span className="ml-1 text-[10px] font-medium uppercase tracking-wide text-slate-400">
-              · Floor {request.floor}
-            </span>
-          </p>
-        </div>
+        <p className="font-mono text-sm font-bold text-foreground">
+          Room {request.roomNumber}
+          <span className="ml-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            · Floor {request.floor}
+          </span>
+        </p>
         <span
-          className={clsx(
+          className={cn(
             "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            sev.bg,
-            sev.text,
+            sev.cls,
           )}
         >
           {sev.label}
         </span>
       </div>
-      <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
+      <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
         {request.description}
       </p>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
         <span>
           Reported by{" "}
-          <span className="font-medium text-slate-600">
+          <span className="font-medium text-foreground">
             {request.reportedBy || "—"}
           </span>{" "}
           · {formatDateShort(request.createdAt)}
         </span>
         {request.status !== "RESOLVED" && request.status !== "CLOSED" && (
-          <span className={clsx(days > 2 ? "font-semibold text-rose-600" : "text-slate-500")}>
+          <span className={cn(days > 2 && "font-semibold text-rose-600")}>
             {days}d open
           </span>
         )}
-        {(request.status === "RESOLVED" || request.status === "CLOSED") && request.resolvedAt && (
-          <span className="text-emerald-600">
-            Resolved {formatDateShort(request.resolvedAt)}
-          </span>
-        )}
+        {(request.status === "RESOLVED" || request.status === "CLOSED") &&
+          request.resolvedAt && (
+            <span className="text-emerald-600">
+              Resolved {formatDateShort(request.resolvedAt)}
+            </span>
+          )}
       </div>
 
       {isManager && (isOpen || isInProgress) && (
         <div className="mt-3 flex gap-2">
           {isOpen && (
-            <button
-              type="button"
+            <Button
+              size="sm"
+              className="h-7 bg-amber-500 text-white hover:bg-amber-600"
               onClick={() => move("IN_PROGRESS")}
-              className="rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-amber-600"
             >
               Start Work
-            </button>
+            </Button>
           )}
           {isInProgress && !showResolve && (
-            <button
-              type="button"
+            <Button
+              size="sm"
+              className="h-7 bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={() => setShowResolve(true)}
-              className="rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
             >
               Mark Resolved
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {showResolve && (
         <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50/60 p-2">
-          <textarea
+          <Textarea
             rows={2}
             placeholder="Resolution notes (optional)"
             value={resolveNotes}
             onChange={(e) => setResolveNotes(e.target.value)}
-            className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
+            className="bg-white text-xs"
           />
           <div className="mt-2 flex justify-end gap-1.5">
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7"
               onClick={() => {
                 setShowResolve(false);
                 setResolveNotes("");
               }}
-              className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-600"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={async () => {
-                await move("RESOLVED", resolveNotes ? { resolutionNotes: resolveNotes } : {});
+                await move(
+                  "RESOLVED",
+                  resolveNotes ? { resolutionNotes: resolveNotes } : {},
+                );
                 setShowResolve(false);
                 setResolveNotes("");
               }}
-              className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-semibold text-white"
             >
               Resolve
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -319,9 +297,9 @@ export default function MaintenanceBoard() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="kanban-board">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-72 animate-pulse rounded-xl bg-slate-100" />
+          <Skeleton key={i} className="h-72 rounded-xl" />
         ))}
       </div>
     );
@@ -332,50 +310,38 @@ export default function MaintenanceBoard() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="font-serif text-2xl font-bold text-navy-900">
+            <h2 className="font-serif text-xl font-bold text-foreground">
               Maintenance
             </h2>
             <span className="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white">
               {openCount} open
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Track repairs across housekeeping, engineering, and front-of-house.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpenModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600"
-        >
-          <Plus className="h-4 w-4" />
+        <Button variant="destructive" onClick={() => setOpenModal(true)}>
+          <Plus />
           Report Issue
-        </button>
+        </Button>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="kanban-board">
         {COLUMNS.map((col) => (
-          <div
-            key={col.key}
-            className={clsx(
-              "rounded-xl border-2 bg-slate-50/60 p-3",
-              col.tint,
-            )}
-          >
-            <div className="mb-3 flex items-center justify-between px-1">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-                {col.label}
-              </h3>
-              <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+          <div key={col.key} className="kanban-column">
+            <div className="kanban-column-header">
+              <h3 className="kanban-column-title">{col.label}</h3>
+              <span className="rounded-full bg-card px-2 py-0.5 text-xs font-semibold text-foreground ring-1 ring-border">
                 {columns[col.key].length}
               </span>
             </div>
-            <div className="space-y-2">
+            <div>
               {columns[col.key].map((req) => (
                 <MaintCard key={req.id} request={req} isManager={isManager} />
               ))}
               {columns[col.key].length === 0 && (
-                <div className="rounded-md border border-dashed border-slate-200 bg-white/60 px-3 py-6 text-center text-xs text-slate-400">
+                <div className="rounded-md border border-dashed bg-card/60 px-3 py-6 text-center text-xs text-muted-foreground">
                   Empty
                 </div>
               )}
