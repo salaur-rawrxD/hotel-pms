@@ -7,6 +7,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/auth.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import reservationsRoutes from "./routes/reservations.routes.js";
 import roomsRoutes from "./routes/rooms.routes.js";
 import guestsRoutes from "./routes/guests.routes.js";
@@ -48,6 +49,7 @@ export function createApp() {
   );
 
   app.use("/api/auth", authLimiter, authRoutes);
+  app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/reservations", reservationsRoutes);
   app.use("/api/rooms", roomsRoutes);
   app.use("/api/guests", guestsRoutes);

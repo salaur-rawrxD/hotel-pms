@@ -3,22 +3,41 @@ import { format, formatDistanceToNow, parseISO } from "date-fns";
 function toDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
-  if (typeof value === "string") return parseISO(value);
-  return new Date(value);
+  if (typeof value === "string") {
+    const parsed = parseISO(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  const fallback = new Date(value);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
 }
 
-export function formatDate(value, pattern = "MMM d, yyyy") {
-  const date = toDate(value);
-  if (!date || Number.isNaN(date.getTime())) return "—";
-  return format(date, pattern);
-}
+export const formatDate = (date) => {
+  const d = toDate(date);
+  if (!d) return "—";
+  return format(d, "MMM d, yyyy");
+};
 
-export function formatDateTime(value, pattern = "MMM d, yyyy h:mm a") {
-  return formatDate(value, pattern);
-}
+export const formatDateShort = (date) => {
+  const d = toDate(date);
+  if (!d) return "—";
+  return format(d, "MMM d");
+};
 
-export function formatRelative(value) {
-  const date = toDate(value);
-  if (!date || Number.isNaN(date.getTime())) return "—";
-  return formatDistanceToNow(date, { addSuffix: true });
-}
+export const formatTime = (date) => {
+  const d = toDate(date);
+  if (!d) return "—";
+  return format(d, "h:mm a");
+};
+
+// TopBar still imports formatDateTime, so keep it available for back-compat.
+export const formatDateTime = (date, pattern = "MMM d, yyyy h:mm a") => {
+  const d = toDate(date);
+  if (!d) return "—";
+  return format(d, pattern);
+};
+
+export const formatRelative = (date) => {
+  const d = toDate(date);
+  if (!d) return "—";
+  return formatDistanceToNow(d, { addSuffix: true });
+};

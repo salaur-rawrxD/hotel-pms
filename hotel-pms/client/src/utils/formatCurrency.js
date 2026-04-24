@@ -1,11 +1,15 @@
-export function formatCurrency(value, currency = "USD", locale = "en-US") {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return new Intl.NumberFormat(locale, {
+export const formatCurrency = (amount) =>
+  new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(value));
-}
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(amount) || 0);
+
+export const formatCurrencyShort = (amount) => {
+  const n = Number(amount) || 0;
+  if (Math.abs(n) >= 1000) {
+    return "$" + (n / 1000).toFixed(1) + "k";
+  }
+  return formatCurrency(n);
+};
