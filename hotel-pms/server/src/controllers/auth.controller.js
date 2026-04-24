@@ -1,70 +1,80 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 import { prisma } from "../utils/prisma.js";
-import { generateToken } from "../utils/generateToken.js";
+
+function signAuthToken(user) {
+  return jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      propertyId: user.propertyId,
+      name: user.name,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN ?? "8h" },
+  );
+}
+
+function serializeUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    propertyId: user.propertyId,
+    property: user.property
+      ? { name: user.property.name, timezone: user.property.timezone }
+      : null,
+  };
+}
 
 export async function login(req, res) {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
+    include: { property: { select: { name: true, timezone: true } } },
   });
 
   if (!user) {
-    const err = new Error("Invalid email or password.");
+    const err = new Error("Invalid credentials");
     err.status = 401;
     throw err;
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    const err = new Error("Invalid email or password.");
+    const err = new Error("Invalid credentials");
     err.status = 401;
     throw err;
   }
 
-  const token = generateToken({
-    sub: user.id,
-    email: user.email,
-    role: user.role,
-    propertyId: user.propertyId,
-  });
+  const token = signAuthToken(user);
 
-  res.json({
+  res.status(200).json({
     token,
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      propertyId: user.propertyId,
-    },
+    user: serializeUser(user),
   });
 }
 
 export async function logout(_req, res) {
-  // Tokens are stateless; clients should drop the token. Endpoint exists
-  // so future blacklist/refresh-token work has a natural home.
-  res.json({ success: true });
+  res.status(200).json({ message: "Logged out successfully" });
 }
 
 export async function me(req, res) {
+  const userId = req.user?.userId ?? req.user?.id;
   const user = await prisma.user.findUnique({
-    where: { id: req.user.id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      propertyId: true,
-    },
+    where: { id: userId },
+    include: { property: { select: { name: true, timezone: true } } },
   });
 
   if (!user) {
-    const err = new Error("User not found.");
-    err.status = 404;
+    const err = new Error("User no longer exists");
+    err.status = 401;
     throw err;
   }
 
-  res.json(user);
+  res.status(200).json({ user: serializeUser(user) });
 }

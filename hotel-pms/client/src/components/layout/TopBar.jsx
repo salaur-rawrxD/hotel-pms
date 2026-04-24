@@ -1,97 +1,111 @@
 import { useEffect, useState } from "react";
-import { Menu, LogOut, Search, Bell } from "lucide-react";
-import { Menu as HeadlessMenu } from "@headlessui/react";
-import clsx from "clsx";
+import { useLocation } from "react-router-dom";
+import { Bell } from "lucide-react";
 
-import Avatar from "../ui/Avatar.jsx";
-import { useAuth } from "../../hooks/useAuth.js";
-import { useUiStore } from "../../store/uiStore.js";
-import { USER_ROLE_LABELS } from "../../constants/userRoles.js";
-import { formatDateTime } from "../../utils/formatDate.js";
+import { useAuthStore } from "../../store/authStore.js";
 
-const PROPERTY_NAME = "The Meridian Hotel";
+const ROUTE_TITLES = {
+  "/dashboard":    "Dashboard",
+  "/reservations": "Reservations",
+  "/front-desk":   "Front Desk",
+  "/housekeeping": "Housekeeping",
+  "/rates":        "Rates & Yield",
+  "/channels":     "Channels",
+  "/reports":      "Reports",
+  "/guests":       "Guests",
+  "/settings":     "Settings",
+};
+
+function titleFromPath(pathname) {
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
+  const [, first] = pathname.split("/");
+  if (!first) return "Dashboard";
+  const pretty = first.replace(/-/g, " ");
+  return pretty.charAt(0).toUpperCase() + pretty.slice(1);
+}
+
+function buildCrumbs(pathname) {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length <= 1) return [];
+  return parts.map((p, i) => ({
+    label: p.replace(/-/g, " "),
+    to: "/" + parts.slice(0, i + 1).join("/"),
+  }));
+}
+
+function formatLiveDateTime(d) {
+  const weekday = d.toLocaleDateString(undefined, { weekday: "long" });
+  const monthDay = d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+  const time = d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${weekday}, ${monthDay} · ${time}`;
+}
+
+function getInitials(name = "") {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join("") || "?"
+  );
+}
+
+const NOTIFICATION_COUNT = 3;
 
 export default function TopBar() {
-  const { user, logout } = useAuth();
-  const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const location = useLocation();
+  const user = useAuthStore((s) => s.user);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
+    const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-navy-700 bg-navy-900/80 px-6 backdrop-blur">
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          className="rounded-md p-2 text-slate-300 hover:bg-navy-800 hover:text-slate-100"
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+  const title = titleFromPath(location.pathname);
+  const crumbs = buildCrumbs(location.pathname);
 
-        <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
-            type="search"
-            placeholder="Search reservations, guests, rooms…"
-            className="h-9 w-80 rounded-md border border-navy-700 bg-navy-800/60 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:border-teal-light focus:outline-none focus:ring-1 focus:ring-teal-light"
-          />
-        </div>
+  return (
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
+      <div className="min-w-0">
+        <h1 className="truncate font-serif text-xl font-semibold text-navy-900">
+          {title}
+        </h1>
+        {crumbs.length > 1 && (
+          <p className="mt-0.5 truncate text-[11px] capitalize text-slate-500">
+            {crumbs.map((c) => c.label).join(" / ")}
+          </p>
+        )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden flex-col items-end leading-tight lg:flex">
-          <span className="font-serif text-sm font-semibold text-slate-100">
-            {PROPERTY_NAME}
-          </span>
-          <span className="text-[11px] text-slate-400">
-            {formatDateTime(now, "EEE, MMM d · h:mm a")}
-          </span>
-        </div>
+      <div className="flex items-center gap-4">
+        <span className="hidden text-xs font-medium text-slate-500 md:inline">
+          {formatLiveDateTime(now)}
+        </span>
+
         <button
           type="button"
-          className="relative rounded-md p-2 text-slate-300 hover:bg-navy-800 hover:text-slate-100"
           aria-label="Notifications"
+          className="relative grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50"
         >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-gold" />
+          <Bell className="h-4 w-4" />
+          {NOTIFICATION_COUNT > 0 && (
+            <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy-900">
+              {NOTIFICATION_COUNT}
+            </span>
+          )}
         </button>
 
-        <HeadlessMenu as="div" className="relative">
-          <HeadlessMenu.Button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-navy-800">
-            <Avatar name={user?.name} size="sm" />
-            <div className="hidden text-left md:block">
-              <p className="text-sm font-medium text-slate-100">
-                {user?.name ?? "Guest"}
-              </p>
-              <p className="text-xs text-slate-500">
-                {USER_ROLE_LABELS[user?.role] ?? "—"}
-              </p>
-            </div>
-          </HeadlessMenu.Button>
-          <HeadlessMenu.Items className="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-md border border-navy-700 bg-navy-800 p-1 shadow-xl focus:outline-none">
-            <HeadlessMenu.Item>
-              {({ active }) => (
-                <button
-                  type="button"
-                  onClick={() => logout()}
-                  className={clsx(
-                    "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm",
-                    active
-                      ? "bg-navy-700 text-slate-100"
-                      : "text-slate-300",
-                  )}
-                >
-                  <LogOut className="h-4 w-4" /> Sign out
-                </button>
-              )}
-            </HeadlessMenu.Item>
-          </HeadlessMenu.Items>
-        </HeadlessMenu>
+        <span
+          className="grid h-9 w-9 place-items-center rounded-full bg-teal text-xs font-semibold text-white"
+          title={user?.name ?? ""}
+        >
+          {getInitials(user?.name)}
+        </span>
       </div>
     </header>
   );

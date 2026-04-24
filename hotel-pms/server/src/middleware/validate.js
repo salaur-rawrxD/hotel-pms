@@ -8,9 +8,15 @@ export function validate(schema, source = "body") {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const err = new Error("Validation failed.");
-        err.status = 422;
-        err.details = error.flatten();
+        const flat = error.flatten();
+        const firstFieldMessage = Object.values(flat.fieldErrors)
+          .flat()
+          .find(Boolean);
+        const err = new Error(
+          firstFieldMessage ?? flat.formErrors?.[0] ?? "Validation failed",
+        );
+        err.status = 400;
+        err.details = flat;
         return next(err);
       }
       next(error);

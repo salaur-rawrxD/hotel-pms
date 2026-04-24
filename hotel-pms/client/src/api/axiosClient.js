@@ -1,17 +1,20 @@
 import axios from "axios";
-import toast from "react-hot-toast";
 
-import { useAuthStore } from "../store/authStore.js";
+export const TOKEN_STORAGE_KEY = "pms_token";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001/api";
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001/api";
 
 const axiosClient = axios.create({
   baseURL,
-  timeout: 15_000,
+  timeout: 10_000,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 axiosClient.interceptors.request.use((config) => {
-  const { token } = useAuthStore.getState();
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,22 +25,25 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    const message =
-      error?.response?.data?.message ??
-      error?.response?.data?.error ??
-      error?.message ??
-      "Request failed";
 
     if (status === 401) {
-      useAuthStore.getState().logout();
-      if (!window.location.pathname.startsWith("/login")) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      delete axiosClient.defaults.headers.common.Authorization;
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
         window.location.href = "/login";
       }
-    } else if (status >= 500) {
-      toast.error(message);
     }
 
-    return Promise.reject(error);
+    const message =
+      error?.response?.data?.message ?? "Something went wrong";
+    const normalized = new Error(message);
+    normalized.status = status;
+    normalized.response = error?.response;
+    normalized.original = error;
+    return Promise.reject(normalized);
   },
 );
 

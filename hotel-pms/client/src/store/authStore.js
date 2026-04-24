@@ -1,30 +1,67 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
-export const useAuthStore = create(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
+import axiosClient, { TOKEN_STORAGE_KEY } from "../api/axiosClient.js";
+import {
+  loginRequest,
+  logoutRequest,
+  getMeRequest,
+} from "../api/auth.js";
 
-      setSession: ({ user, token }) => set({ user, token }),
-      updateUser: (user) => set({ user }),
-      logout: () => set({ user: null, token: null }),
+export const useAuthStore = create((set, get) => ({
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isInitializing: true,
 
-      isAuthenticated: () => {
-        const { token } = useAuthStore.getState();
-        return Boolean(token);
-      },
-      hasRole: (roles) => {
-        const { user } = useAuthStore.getState();
-        if (!user) return false;
-        if (!roles || roles.length === 0) return true;
-        return roles.includes(user.role);
-      },
-    }),
-    {
-      name: "hotel-pms-auth",
-      partialize: (state) => ({ user: state.user, token: state.token }),
-    },
-  ),
-);
+  login: async (email, password) => {
+    const response = await loginRequest(email, password);
+    const { token, user } = response.data;
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    axiosClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+    set({ user, token, isAuthenticated: true });
+  },
+
+  logout: async () => {
+    try {
+      await logoutRequest();
+    } catch {
+      /* ignore network/token errors — local state still drops */
+    }
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    delete axiosClient.defaults.headers.common.Authorization;
+    set({ user: null, token: null, isAuthenticated: false });
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+  },
+
+  initializeAuth: async () => {
+    set({ isInitializing: true });
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!token) {
+      set({ isInitializing: false });
+      return;
+    }
+    try {
+      axiosClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+      const response = await getMeRequest();
+      set({
+        user: response.data.user,
+        token,
+        isAuthenticated: true,
+        isInitializing: false,
+      });
+    } catch {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      delete axiosClient.defaults.headers.common.Authorization;
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isInitializing: false,
+      });
+    }
+  },
+
+  hasRole: (...roles) => roles.includes(get().user?.role),
+}));

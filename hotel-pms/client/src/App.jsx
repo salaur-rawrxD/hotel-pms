@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./components/layout/ProtectedRoute.jsx";
-import AppShell from "./components/layout/AppShell.jsx";
+import RoleRoute from "./components/layout/RoleRoute.jsx";
+import AppLayout from "./components/layout/AppLayout.jsx";
 
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -13,137 +15,65 @@ import Channels from "./pages/Channels.jsx";
 import Reports from "./pages/Reports.jsx";
 import Guests from "./pages/Guests.jsx";
 import Settings from "./pages/Settings.jsx";
+import Unauthorized from "./pages/Unauthorized.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
-import { USER_ROLES } from "./constants/userRoles.js";
+import { useAuthStore } from "./store/authStore.js";
 
 export default function App() {
+  const initializeAuth = useAuthStore((s) => s.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
-      <Route
-        element={
-          <ProtectedRoute>
-            <AppShell />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MANAGER,
-                USER_ROLES.FRONT_DESK,
-              ]}
-            >
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reservations"
-          element={
-            <ProtectedRoute
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MANAGER,
-                USER_ROLES.FRONT_DESK,
-              ]}
-            >
-              <Reservations />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/front-desk"
-          element={
-            <ProtectedRoute
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MANAGER,
-                USER_ROLES.FRONT_DESK,
-              ]}
-            >
-              <FrontDesk />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/housekeeping"
-          element={
-            <ProtectedRoute
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MANAGER,
-                USER_ROLES.HOUSEKEEPING,
-              ]}
-            >
-              <Housekeeping />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/rates"
-          element={
-            <ProtectedRoute
-              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MANAGER]}
-            >
-              <RatesYield />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/channels"
-          element={
-            <ProtectedRoute
-              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MANAGER]}
-            >
-              <Channels />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute
-              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MANAGER]}
-            >
-              <Reports />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/guests"
-          element={
-            <ProtectedRoute
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MANAGER,
-                USER_ROLES.FRONT_DESK,
-              ]}
-            >
-              <Guests />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute
-              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MANAGER]}
-            >
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={["ADMIN", "MANAGER", "FRONT_DESK"]}
+              />
+            }
+          >
+            <Route path="/reservations" element={<Reservations />} />
+            <Route path="/front-desk" element={<FrontDesk />} />
+            <Route path="/guests" element={<Guests />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={["ADMIN", "MANAGER", "HOUSEKEEPING"]}
+              />
+            }
+          >
+            <Route path="/housekeeping" element={<Housekeeping />} />
+          </Route>
+
+          <Route
+            element={<RoleRoute allowedRoles={["ADMIN", "MANAGER"]} />}
+          >
+            <Route path="/rates" element={<RatesYield />} />
+            <Route path="/channels" element={<Channels />} />
+            <Route path="/reports" element={<Reports />} />
+          </Route>
+
+          <Route element={<RoleRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+        </Route>
       </Route>
+
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

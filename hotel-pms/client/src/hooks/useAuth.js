@@ -1,43 +1,30 @@
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-
-import { authApi } from "../api/auth.js";
 import { useAuthStore } from "../store/authStore.js";
 
+/**
+ * Small convenience hook that exposes the most common auth state + actions
+ * from the Zustand store for components that prefer a hook API.
+ *
+ * The store is still the source of truth; components can import it directly
+ * when they need finer control.
+ */
 export function useAuth() {
-  const navigate = useNavigate();
-  const { user, token, setSession, logout } = useAuthStore();
-
-  const loginMutation = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      setSession({ user: data.user, token: data.token });
-      toast.success(`Welcome back, ${data.user?.name ?? "there"}.`);
-      navigate("/dashboard", { replace: true });
-    },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message ?? "Invalid email or password.";
-      toast.error(message);
-    },
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: authApi.logout,
-    onSettled: () => {
-      logout();
-      navigate("/login", { replace: true });
-    },
-  });
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitializing = useAuthStore((s) => s.isInitializing);
+  const login = useAuthStore((s) => s.login);
+  const logout = useAuthStore((s) => s.logout);
+  const initializeAuth = useAuthStore((s) => s.initializeAuth);
+  const hasRole = useAuthStore((s) => s.hasRole);
 
   return {
     user,
     token,
-    isAuthenticated: Boolean(token),
-    login: loginMutation.mutate,
-    loginAsync: loginMutation.mutateAsync,
-    isLoggingIn: loginMutation.isPending,
-    logout: logoutMutation.mutate,
+    isAuthenticated,
+    isInitializing,
+    login,
+    logout,
+    initializeAuth,
+    hasRole,
   };
 }

@@ -1,26 +1,24 @@
-import { verifyToken } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
 export function authenticate(req, _res, next) {
   const header = req.headers.authorization || "";
   const [scheme, token] = header.split(" ");
 
   if (!token || scheme !== "Bearer") {
-    const err = new Error("Missing or malformed Authorization header.");
+    const err = new Error("No token provided");
     err.status = 401;
     return next(err);
   }
 
   try {
-    const payload = verifyToken(token);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.user = {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      propertyId: payload.propertyId ?? null,
+      ...payload,
+      id: payload.userId ?? payload.sub ?? payload.id,
     };
     next();
   } catch (_error) {
-    const err = new Error("Invalid or expired token.");
+    const err = new Error("Invalid or expired token");
     err.status = 401;
     next(err);
   }

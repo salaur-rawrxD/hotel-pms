@@ -1,17 +1,5 @@
-import PageWrapper from "../components/layout/PageWrapper.jsx";
-import Card from "../components/ui/Card.jsx";
+import PagePlaceholder from "../components/layout/PagePlaceholder.jsx";
 
 export default function RatesYield() {
-  return (
-    <PageWrapper
-      title="Rates & Yield"
-      description="Daily rates, restrictions, and yield rules."
-    >
-      <Card>
-        <p className="text-sm text-slate-400">
-          Rate calendar and yield controls will be built here.
-        </p>
-      </Card>
-    </PageWrapper>
-  );
+  return <PagePlaceholder title="Rates & Yield" />;
 }
