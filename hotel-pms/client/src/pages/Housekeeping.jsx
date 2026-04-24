@@ -17,6 +17,7 @@ import InspectionQueue from "../components/housekeeping/InspectionQueue.jsx";
 import LostAndFoundLog from "../components/housekeeping/LostAndFoundLog.jsx";
 import MaintenanceBoard from "../components/housekeeping/MaintenanceBoard.jsx";
 import RoomTaskDrawer from "../components/housekeeping/RoomTaskDrawer.jsx";
+import AssignTaskDialog from "../components/housekeeping/AssignTaskDialog.jsx";
 import StaffAssignmentBoard from "../components/housekeeping/StaffAssignmentBoard.jsx";
 import SupplyRequestForm from "../components/housekeeping/SupplyRequestForm.jsx";
 import { Button } from "../components/ui/button.jsx";
@@ -32,6 +33,7 @@ import {
   useMaintenanceRequests,
   useRefreshHousekeeping,
 } from "../hooks/useHousekeeping.js";
+import { useAuthStore } from "../store/authStore.js";
 import { formatDate } from "../utils/formatDate.js";
 
 function PrintAssignmentSheet({ data }) {
@@ -90,6 +92,9 @@ function PrintAssignmentSheet({ data }) {
 
 export default function Housekeeping() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [assignTarget, setAssignTarget] = useState(null);
+  const user = useAuthStore((s) => s.user);
+  const canAssign = useAuthStore((s) => s.hasRole("ADMIN", "MANAGER"));
 
   const assignments = useAssignments();
   const inspection = useInspectionQueue();
@@ -124,7 +129,13 @@ export default function Housekeeping() {
   };
 
   const handleAssignRoom = (room) => {
-    toast(`Select a staff member to assign Room ${room.number}`);
+    if (!canAssign) return;
+    setAssignTarget({ kind: "room", room });
+  };
+
+  const handleAssignTask = (task) => {
+    if (!canAssign) return;
+    setAssignTarget({ kind: "task", task });
   };
 
   return (
@@ -198,6 +209,8 @@ export default function Housekeeping() {
           <StaffAssignmentBoard
             onOpenTask={openDrawer}
             onAssignRoom={handleAssignRoom}
+            onAssignTask={handleAssignTask}
+            canAssign={canAssign}
           />
         </TabsContent>
         <TabsContent value="floor-map">
@@ -221,6 +234,15 @@ export default function Housekeeping() {
         taskId={selectedTaskId}
         open={!!selectedTaskId}
         onClose={closeDrawer}
+      />
+
+      <AssignTaskDialog
+        open={!!assignTarget}
+        onOpenChange={(open) => {
+          if (!open) setAssignTarget(null);
+        }}
+        user={user}
+        target={assignTarget}
       />
     </div>
   );

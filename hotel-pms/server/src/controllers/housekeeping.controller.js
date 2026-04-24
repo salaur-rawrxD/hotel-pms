@@ -546,6 +546,49 @@ export async function assignTask(req, res) {
   res.status(201).json({ ...task, checklist: summarizeChecklist(task.checklist) });
 }
 
+export async function patchTaskAssignment(req, res) {
+  const { id } = req.params;
+  const { staffId } = req.body ?? {};
+  if (!staffId) throw httpErr(400, "staffId is required");
+
+  const task = await prisma.housekeepingTask.findUnique({
+    where: { id },
+    include: {
+      room: true,
+      assignedTo: { select: { id: true, name: true } },
+      checklist: { include: { items: true } },
+    },
+  });
+  if (!task) throw httpErr(404, "Task not found");
+
+  const propertyId = propertyScope(req);
+  if (propertyId) {
+    const inScope = await prisma.room.findFirst({
+      where: { id: task.roomId, ...roomPropertyFilter(propertyId) },
+      select: { id: true },
+    });
+    if (!inScope) throw httpErr(403, "Task is outside your property");
+  }
+
+  const staff = await prisma.user.findUnique({ where: { id: staffId } });
+  if (!staff) throw httpErr(404, "Staff member not found");
+  if (staff.role !== "HOUSEKEEPING") {
+    throw httpErr(400, "Only housekeeping staff can be assigned to tasks");
+  }
+
+  const updated = await prisma.housekeepingTask.update({
+    where: { id },
+    data: { assignedToId: staffId },
+    include: {
+      room: true,
+      assignedTo: { select: { id: true, name: true } },
+      checklist: { include: { items: true } },
+    },
+  });
+
+  res.json({ ...updated, checklist: summarizeChecklist(updated.checklist) });
+}
+
 // ───────────────────────── lost & found ────────────────────────────────
 
 export async function getLostAndFound(_req, res) {

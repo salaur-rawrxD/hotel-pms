@@ -12,12 +12,14 @@ import {
   getMaintenanceRequests,
   getSupplyRequests,
   getTaskChecklist,
+  patchTaskAssignment,
   toggleChecklistItem,
   updateLostAndFound,
   updateMaintenanceRequest,
   updateSupplyRequest,
   updateTaskStatus,
 } from "../api/housekeeping.js";
+import { getUsers } from "../api/users.js";
 
 export const HK_KEYS = {
   all: ["housekeeping"],
@@ -37,6 +39,23 @@ export const useAssignments = () =>
     queryKey: HK_KEYS.assignments,
     queryFn: () => getAssignments().then((r) => r.data),
     refetchInterval: 30_000,
+  });
+
+/** Housekeeping staff eligible for assignment (managers/admins only). */
+export const useAssignableHousekeepingStaff = (user, enabled = true) =>
+  useQuery({
+    queryKey: ["users", "assign-hk", user?.id, user?.propertyId],
+    queryFn: () => getUsers().then((r) => r.data),
+    enabled:
+      !!enabled &&
+      !!user &&
+      ["ADMIN", "MANAGER"].includes(user.role),
+    select: (users) =>
+      users.filter((u) => {
+        if (u.role !== "HOUSEKEEPING") return false;
+        if (!user.propertyId) return true;
+        return u.propertyId === user.propertyId;
+      }),
   });
 
 export const useFloorMap = () =>
@@ -149,6 +168,17 @@ export const useAssignTask = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data) => assignTask(data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: HK_KEYS.all });
+    },
+  });
+};
+
+export const usePatchTaskAssignment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, staffId }) =>
+      patchTaskAssignment(taskId, staffId).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: HK_KEYS.all });
     },
