@@ -42,8 +42,18 @@ axiosClient.interceptors.response.use(
       }
     }
 
+    const data = error?.response?.data;
+    const fromBody =
+      typeof data === "string"
+        ? data
+        : data?.message ?? data?.error ?? data?.errors?.[0];
     const message =
-      error?.response?.data?.message ?? "Something went wrong";
+      fromBody ??
+      (error?.code === "ERR_NETWORK" || error?.message === "Network Error"
+        ? "Network error — check CORS, API URL, and that the server is up."
+        : null) ??
+      error?.message ??
+      (status != null ? `Request failed (${status})` : "Something went wrong");
     const normalized = new Error(message);
     normalized.status = status;
     normalized.response = error?.response;

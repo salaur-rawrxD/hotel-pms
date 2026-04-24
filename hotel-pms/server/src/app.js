@@ -39,6 +39,15 @@ function isFairbridgeVercelOrigin(origin) {
   }
 }
 
+/** Any Vercel host (*.vercel.app) — previews often use org/user slugs with no "fairbridge" in the name. */
+function isVercelAppOrigin(origin) {
+  try {
+    return new URL(origin).hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
 export function createApp() {
   const app = express();
 
@@ -56,7 +65,8 @@ export function createApp() {
         if (
           !origin ||
           allowedOrigins.has(origin) ||
-          isFairbridgeVercelOrigin(origin)
+          isFairbridgeVercelOrigin(origin) ||
+          (process.env.VERCEL && isVercelAppOrigin(origin))
         ) {
           callback(null, true);
         } else {
