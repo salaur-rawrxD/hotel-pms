@@ -1,6 +1,9 @@
-# Deploys the Vite app to the Vercel project "fairbridge-pms" (ids match hotel-pms/client/.vercel/project.json).
-# Add repository secret VERCEL_TOKEN: https://vercel.com/account/tokens
-# Optional: disable auto-deploys on a duplicate Vercel project (e.g. "hotel-pms") if it shares the same Git repo.
+# Deploys the Vite app to Vercel project "fairbridge-pms" (ids match hotel-pms/client/.vercel/project.json).
+#
+# 1) Repository secret:  VERCEL_TOKEN  →  https://vercel.com/account/tokens
+# 2) Repository variable: VERCEL_DEPLOY = true  (Settings → Secrets and variables → Actions → Variables)
+#    Pushes are skipped until both are set, so missing-token runs don’t fail CI.
+# 3) Or run "Run workflow" manually (workflow_dispatch) on the branch you want.
 
 name: Vercel — fairbridge-pms
 
@@ -10,6 +13,7 @@ on:
     paths:
       - "hotel-pms/client/**"
       - "vercel.json"
+      - ".github/workflows/vercel-fairbridge-pms.yml"
   workflow_dispatch: {}
 
 concurrency:
@@ -18,7 +22,10 @@ concurrency:
 
 jobs:
   production:
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main' && (
+        vars.VERCEL_DEPLOY == 'true' || github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +38,10 @@ jobs:
           vercel-args: --prod
 
   preview:
-    if: github.ref == 'refs/heads/dev'
+    if: |
+      github.ref == 'refs/heads/dev' && (
+        vars.VERCEL_DEPLOY == 'true' || github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
