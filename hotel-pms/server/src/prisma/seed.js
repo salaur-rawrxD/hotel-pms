@@ -26,6 +26,12 @@ async function main() {
   console.log("🌱 Seeding Hotel PMS database…");
 
   console.log("  → clearing existing data");
+  await prisma.roomChecklistItem.deleteMany();
+  await prisma.roomChecklist.deleteMany();
+  await prisma.checklistItem.deleteMany();
+  await prisma.checklistTemplate.deleteMany();
+  await prisma.supplyRequest.deleteMany();
+  await prisma.lostAndFound.deleteMany();
   await prisma.folioItem.deleteMany();
   await prisma.housekeepingTask.deleteMany();
   await prisma.maintenanceRequest.deleteMany();
@@ -53,12 +59,15 @@ async function main() {
   console.log("  → users");
   const passwordHash = await bcrypt.hash("password123", 10);
   const userSeed = [
-    { email: "admin@meridian.com",         name: "Alex Rivera",   role: "ADMIN" },
-    { email: "manager@meridian.com",       name: "Jordan Pierce", role: "MANAGER" },
-    { email: "frontdesk1@meridian.com",    name: "Maya Chen",     role: "FRONT_DESK" },
-    { email: "frontdesk2@meridian.com",    name: "Kai Patel",     role: "FRONT_DESK" },
-    { email: "housekeeping1@meridian.com", name: "Rosa Alvarez",  role: "HOUSEKEEPING" },
-    { email: "housekeeping2@meridian.com", name: "Tomás Silva",   role: "HOUSEKEEPING" },
+    { email: "admin@meridian.com",         name: "Alex Rivera",    role: "ADMIN" },
+    { email: "manager@meridian.com",       name: "Jordan Pierce",  role: "MANAGER" },
+    { email: "frontdesk1@meridian.com",    name: "Maya Chen",      role: "FRONT_DESK" },
+    { email: "frontdesk2@meridian.com",    name: "Kai Patel",      role: "FRONT_DESK" },
+    { email: "housekeeping1@meridian.com", name: "Maria Santos",   role: "HOUSEKEEPING" },
+    { email: "housekeeping2@meridian.com", name: "James Okafor",   role: "HOUSEKEEPING" },
+    { email: "housekeeping3@meridian.com", name: "Linda Park",     role: "HOUSEKEEPING" },
+    { email: "housekeeping4@meridian.com", name: "Carlos Mendez",  role: "HOUSEKEEPING" },
+    { email: "housekeeping5@meridian.com", name: "Aisha Williams", role: "HOUSEKEEPING" },
   ];
 
   const users = [];
@@ -69,7 +78,11 @@ async function main() {
       }),
     );
   }
-  const [admin, manager, fd1, fd2, hk1, hk2] = users;
+  const [admin, manager, fd1, fd2, maria, james, linda, carlos, aisha] = users;
+  const housekeepers = [maria, james, linda, carlos, aisha];
+  // Legacy aliases kept so existing HK task seed below still works.
+  const hk1 = maria;
+  const hk2 = james;
 
   console.log("  → room types");
   const roomTypeSeed = [
@@ -242,26 +255,277 @@ async function main() {
     }
   }
 
-  console.log("  → housekeeping tasks (8)");
-  const taskRooms = [rooms[0], rooms[3], rooms[7], rooms[11], rooms[15], rooms[22], rooms[30], rooms[42]];
-  const taskStatuses = ["PENDING", "PENDING", "IN_PROGRESS", "IN_PROGRESS", "INSPECTED", "DONE", "PENDING", "IN_PROGRESS"];
-  const assignees = [hk1, hk2, hk1, hk2, hk1, hk2, hk1, hk2];
-  for (let i = 0; i < taskRooms.length; i++) {
-    await prisma.housekeepingTask.create({
+  // ────────────────────────────────────────────────
+  // Housekeeping module seed
+  // ────────────────────────────────────────────────
+
+  console.log("  → checklist templates (3)");
+
+  const standardCheckoutItems = [
+    // Bathroom
+    { category: "Bathroom", label: "Replace all towels and linens" },
+    { category: "Bathroom", label: "Clean and disinfect toilet" },
+    { category: "Bathroom", label: "Clean sink and vanity" },
+    { category: "Bathroom", label: "Clean shower/tub" },
+    { category: "Bathroom", label: "Replace toiletries (shampoo, soap, conditioner, lotion)" },
+    { category: "Bathroom", label: "Empty trash and replace liner" },
+    { category: "Bathroom", label: "Clean mirror" },
+    { category: "Bathroom", label: "Mop bathroom floor" },
+    // Bedroom
+    { category: "Bedroom", label: "Strip and remake bed with fresh linens" },
+    { category: "Bedroom", label: "Dust all surfaces" },
+    { category: "Bedroom", label: "Vacuum carpet / mop hard floor" },
+    { category: "Bedroom", label: "Wipe down nightstands" },
+    { category: "Bedroom", label: "Check and clear all drawers" },
+    { category: "Bedroom", label: "Inspect under bed" },
+    { category: "Bedroom", label: "Replace all pillowcases" },
+    { category: "Bedroom", label: "Straighten artwork and decor" },
+    // General
+    { category: "General", label: "Empty all trash bins" },
+    { category: "General", label: "Wipe down TV remote with disinfectant" },
+    { category: "General", label: "Check all lights are working" },
+    { category: "General", label: "Restock coffee station" },
+    { category: "General", label: "Wipe down desk and chair" },
+    { category: "General", label: "Check iron and ironing board" },
+    { category: "General", label: "Check all USB/power outlets" },
+    { category: "General", label: "Close and lock all windows" },
+    { category: "General", label: "Set thermostat to 68°F" },
+    { category: "General", label: "Final walkthrough inspection" },
+    { category: "General", label: "Take photo of completed room" },
+  ];
+
+  const stayOverItems = [
+    { category: "Bathroom", label: "Replace used towels if left on floor" },
+    { category: "Bathroom", label: "Wipe down sink and vanity" },
+    { category: "Bathroom", label: "Clean toilet" },
+    { category: "Bathroom", label: "Restock toiletries as needed" },
+    { category: "Bathroom", label: "Empty trash" },
+    { category: "Bedroom", label: "Make bed (do not change linens unless requested)" },
+    { category: "Bedroom", label: "Tidy and straighten room" },
+    { category: "Bedroom", label: "Vacuum if needed" },
+    { category: "Bedroom", label: "Dust visible surfaces" },
+    { category: "General", label: "Restock coffee and tea" },
+    { category: "General", label: "Empty trash bins" },
+    { category: "General", label: "Check lights working" },
+    { category: "General", label: "Leave \"We cleaned your room\" card" },
+  ];
+
+  const deepCleanExtra = [
+    { category: "Bedroom", label: "Clean inside all drawers" },
+    { category: "Bedroom", label: "Wipe down all walls" },
+    { category: "Bedroom", label: "Clean light fixtures" },
+    { category: "Bedroom", label: "Move furniture and clean underneath" },
+    { category: "General",  label: "Clean inside refrigerator if present" },
+    { category: "Bathroom", label: "Descale showerhead" },
+    { category: "Bathroom", label: "Clean grout in bathroom" },
+    { category: "Bedroom", label: "Inspect mattress and rotate if needed" },
+    { category: "General",  label: "Check behind TV and dust cables" },
+    { category: "General",  label: "Inspect and clean AC/heating vents" },
+    { category: "General",  label: "Window cleaning inside" },
+    { category: "General",  label: "Full inventory check of minibar" },
+  ];
+  const deepCleanItems = [...standardCheckoutItems, ...deepCleanExtra];
+
+  async function createTemplate(name, taskType, itemsSpec) {
+    const tpl = await prisma.checklistTemplate.create({
+      data: { name, taskType, propertyId: property.id },
+    });
+    await prisma.checklistItem.createMany({
+      data: itemsSpec.map((it, idx) => ({
+        templateId: tpl.id,
+        label: it.label,
+        category: it.category,
+        order: idx,
+      })),
+    });
+    return tpl;
+  }
+
+  const tplCheckout  = await createTemplate("Standard Checkout Clean", "CHECKOUT",   standardCheckoutItems);
+  const tplStayOver  = await createTemplate("Stay-Over Service",       "STAY_OVER",  stayOverItems);
+  const tplDeepClean = await createTemplate("Deep Clean",              "DEEP_CLEAN", deepCleanItems);
+
+  const templatesByType = {
+    CHECKOUT:   tplCheckout,
+    STAY_OVER:  tplStayOver,
+    DEEP_CLEAN: tplDeepClean,
+  };
+
+  console.log("  → housekeeping tasks + checklists (today, 20 rooms)");
+
+  const roomByNumber = new Map(rooms.map((r) => [r.number, r]));
+
+  // Assignment plan — Maria/James/Linda/Carlos/Aisha.
+  const assignmentPlan = [
+    { staff: maria, rooms: ["101", "102", "103", "104"] },
+    { staff: james, rooms: ["105", "106", "107", "108"] },
+    { staff: linda, rooms: ["201", "202", "203", "204"] },
+    { staff: carlos, rooms: ["205", "206", "207", "208"] },
+    { staff: aisha, rooms: ["301", "302", "303", "304"] },
+  ];
+  // Status mix across the 20 tasks — cover DONE, IN_PROGRESS, PENDING, INSPECTED.
+  const statusCycle = [
+    "DONE", "IN_PROGRESS", "PENDING", "INSPECTED",
+    "PENDING", "IN_PROGRESS", "DONE", "PENDING",
+    "INSPECTED", "PENDING", "IN_PROGRESS", "DONE",
+    "PENDING", "INSPECTED", "PENDING", "IN_PROGRESS",
+    "DONE", "PENDING", "INSPECTED", "PENDING",
+  ];
+  const taskTypeCycle = ["CHECKOUT", "STAY_OVER", "CHECKOUT", "DEEP_CLEAN"];
+
+  const nowTs = new Date();
+  function minutesAgo(m) {
+    return new Date(nowTs.getTime() - m * 60 * 1000);
+  }
+
+  let cursor = 0;
+  for (const plan of assignmentPlan) {
+    for (const roomNumber of plan.rooms) {
+      const room = roomByNumber.get(roomNumber);
+      if (!room) continue;
+
+      const status = statusCycle[cursor % statusCycle.length];
+      const taskType = taskTypeCycle[cursor % taskTypeCycle.length];
+      cursor += 1;
+
+      const startedAt =
+        status === "IN_PROGRESS" || status === "INSPECTED" || status === "DONE"
+          ? minutesAgo(30 + cursor * 3)
+          : null;
+      const completedAt = status === "DONE" ? minutesAgo(cursor * 2) : null;
+
+      // Flip room status to DIRTY for PENDING/IN_PROGRESS — makes the floor map feel alive.
+      if (room.status === "VACANT" && (status === "PENDING" || status === "IN_PROGRESS")) {
+        await prisma.room.update({
+          where: { id: room.id },
+          data: { status: "DIRTY" },
+        });
+      }
+      if (status === "DONE" && room.status === "VACANT") {
+        await prisma.room.update({
+          where: { id: room.id },
+          data: { status: "CLEAN" },
+        });
+      }
+
+      const task = await prisma.housekeepingTask.create({
+        data: {
+          roomId: room.id,
+          assignedToId: plan.staff.id,
+          status,
+          taskType,
+          priority: (cursor % 5) + 1,
+          notes: status === "INSPECTED" ? "Ready for inspection." : null,
+          startedAt,
+          completedAt,
+        },
+      });
+
+      // Build the per-task checklist from the matching template.
+      const tpl = templatesByType[taskType] ?? tplCheckout;
+      const tplItems = await prisma.checklistItem.findMany({
+        where: { templateId: tpl.id },
+        orderBy: { order: "asc" },
+      });
+
+      const checklist = await prisma.roomChecklist.create({
+        data: {
+          taskId: task.id,
+          completedAt: status === "DONE" ? completedAt : null,
+        },
+      });
+
+      // Partial completion mirrors the task status.
+      const totalItems = tplItems.length;
+      let checkedCount;
+      if (status === "DONE" || status === "INSPECTED") checkedCount = totalItems;
+      else if (status === "IN_PROGRESS") checkedCount = Math.floor(totalItems * 0.5);
+      else checkedCount = 0;
+
+      const itemData = tplItems.map((it, idx) => ({
+        checklistId: checklist.id,
+        label: it.label,
+        category: it.category,
+        order: idx,
+        isChecked: idx < checkedCount,
+        checkedAt: idx < checkedCount ? minutesAgo(20 + idx) : null,
+      }));
+      if (itemData.length) {
+        await prisma.roomChecklistItem.createMany({ data: itemData });
+      }
+    }
+  }
+
+  console.log("  → lost & found (4)");
+  const lfSeed = [
+    { roomNumber: "203", description: "Blue phone charger",          foundBy: "Linda Park",     daysAgo: 0 },
+    { roomNumber: "106", description: "Child's stuffed animal",      foundBy: "James Okafor",   daysAgo: 2 },
+    { roomNumber: "312", description: "Sunglasses (Ray-Ban)",        foundBy: "Aisha Williams", daysAgo: 1 },
+    { roomNumber: "201", description: "Laptop sleeve",               foundBy: "Linda Park",     daysAgo: 0 },
+  ];
+  for (const lf of lfSeed) {
+    const room = roomByNumber.get(lf.roomNumber);
+    if (!room) continue;
+    const foundAt = new Date(nowTs);
+    foundAt.setDate(foundAt.getDate() - lf.daysAgo);
+    await prisma.lostAndFound.create({
       data: {
-        roomId: taskRooms[i].id,
-        assignedToId: assignees[i].id,
-        status: taskStatuses[i],
-        priority: (i % 5) + 1,
-        notes: i % 2 === 0 ? "Standard turnover." : "Deep clean requested.",
-        completedAt: taskStatuses[i] === "DONE" ? new Date() : null,
+        roomId: room.id,
+        description: lf.description,
+        foundBy: lf.foundBy,
+        foundAt,
+        status: "UNCLAIMED",
       },
     });
   }
 
+  console.log("  → maintenance requests (3)");
+  const maintSeed = [
+    { roomNumber: "316", description: "Shower drain clogged",   severity: "HIGH",   reportedBy: "Aisha Williams" },
+    { roomNumber: "204", description: "TV remote not working",  severity: "LOW",    reportedBy: "Linda Park" },
+    { roomNumber: "108", description: "AC making loud noise",   severity: "MEDIUM", reportedBy: "James Okafor" },
+  ];
+  for (const m of maintSeed) {
+    const room = roomByNumber.get(m.roomNumber);
+    if (!room) continue;
+    await prisma.maintenanceRequest.create({
+      data: {
+        roomId: room.id,
+        reportedById: manager.id,
+        reportedBy: m.reportedBy,
+        description: m.description,
+        severity: m.severity,
+        status: "OPEN",
+      },
+    });
+  }
+
+  console.log("  → supply requests (2)");
+  await prisma.supplyRequest.create({
+    data: {
+      requestedBy: "Maria Santos",
+      items: "Queen size pillow cases",
+      quantity: "20",
+      urgency: "URGENT",
+      status: "PENDING",
+      notes: "Need more queen size pillow cases",
+    },
+  });
+  await prisma.supplyRequest.create({
+    data: {
+      requestedBy: "Carlos Mendez",
+      items: "Shampoo bottles",
+      quantity: "50",
+      urgency: "NORMAL",
+      status: "PENDING",
+      notes: "Running low on shampoo bottles",
+    },
+  });
+
   console.log("✅ Seed complete.");
   console.log(`   Admin: admin@meridian.com / password123`);
   console.log(`   Total: ${rooms.length} rooms, ${guests.length} guests, 15 reservations`);
+  console.log(`   Housekeeping: ${housekeepers.length} staff, 20 tasks with checklists`);
 }
 
 main()

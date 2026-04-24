@@ -59,7 +59,7 @@ export default function Sidebar() {
   const badge = ROLE_BADGE[user?.role] ?? { label: user?.role ?? "—", className: "bg-slate-600 text-white" };
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-navy-700 bg-navy-900 text-slate-100">
+    <aside className="sidebar flex h-screen w-64 shrink-0 flex-col border-r border-navy-700 bg-navy-900 text-slate-100">
       {/* Brand */}
       <div className="flex flex-col gap-1 border-b border-navy-700 px-6 py-5">
         <div className="flex items-baseline gap-2">

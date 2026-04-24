@@ -70,7 +70,7 @@ export default function TopBar() {
   const crumbs = buildCrumbs(location.pathname);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
+    <header className="topbar flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
       <div className="min-w-0">
         <h1 className="truncate font-serif text-xl font-semibold text-navy-900">
           {title}

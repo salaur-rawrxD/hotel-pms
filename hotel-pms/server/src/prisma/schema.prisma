@@ -84,6 +84,7 @@ model Room {
   reservations     Reservation[]
   housekeepingTasks HousekeepingTask[]
   maintenance      MaintenanceRequest[]
+  lostAndFound     LostAndFound[]
 
   @@index([roomTypeId])
   @@index([status])
@@ -195,13 +196,17 @@ model HousekeepingTask {
   assignedToId   String?
   /// PENDING | IN_PROGRESS | INSPECTED | DONE
   status         String    @default("PENDING")
+  /// CHECKOUT | STAY_OVER | DEEP_CLEAN
+  taskType       String    @default("CHECKOUT")
   priority       Int       @default(3)
   notes          String?
   createdAt      DateTime  @default(now())
+  startedAt      DateTime?
   completedAt    DateTime?
 
   room           Room      @relation(fields: [roomId], references: [id])
   assignedTo     User?     @relation("TasksAssigned", fields: [assignedToId], references: [id])
+  checklist      RoomChecklist?
 
   @@index([roomId])
   @@index([assignedToId])
@@ -212,14 +217,117 @@ model MaintenanceRequest {
   id              String    @id @default(cuid())
   roomId          String
   reportedById    String
+  reportedBy      String    @default("")
   description     String
+  /// LOW | MEDIUM | HIGH
+  severity        String    @default("LOW")
   /// OPEN | IN_PROGRESS | RESOLVED | CLOSED
   status          String    @default("OPEN")
+  /// JSON-encoded string[] of image URLs.
+  images          String?
   createdAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+  resolvedBy      String?
 
   room            Room      @relation(fields: [roomId], references: [id])
-  reportedBy      User      @relation("ReportsBy", fields: [reportedById], references: [id])
+  reporter        User      @relation("ReportsBy", fields: [reportedById], references: [id])
 
   @@index([roomId])
   @@index([status])
+  @@index([severity])
+}
+
+// ────────────────────────────────────────────────
+// Housekeeping module
+// ────────────────────────────────────────────────
+
+model ChecklistTemplate {
+  id         String          @id @default(cuid())
+  name       String
+  /// CHECKOUT | STAY_OVER | DEEP_CLEAN — mirrors HousekeepingTask.taskType.
+  taskType   String          @default("CHECKOUT")
+  roomType   String?
+  propertyId String
+  createdAt  DateTime        @default(now())
+
+  items      ChecklistItem[]
+
+  @@index([propertyId])
+  @@index([taskType])
+}
+
+model ChecklistItem {
+  id         String            @id @default(cuid())
+  templateId String
+  label      String
+  /// Bathroom | Bedroom | General
+  category   String
+  order      Int               @default(0)
+
+  template   ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+}
+
+model RoomChecklist {
+  id            String              @id @default(cuid())
+  taskId        String              @unique
+  completedAt   DateTime?
+  inspectedById String?
+  inspectedAt   DateTime?
+  createdAt     DateTime            @default(now())
+
+  task          HousekeepingTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  items         RoomChecklistItem[]
+
+  @@index([taskId])
+}
+
+model RoomChecklistItem {
+  id          String        @id @default(cuid())
+  checklistId String
+  label       String
+  category    String
+  order       Int           @default(0)
+  isChecked   Boolean       @default(false)
+  checkedAt   DateTime?
+
+  checklist   RoomChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+}
+
+model LostAndFound {
+  id          String    @id @default(cuid())
+  roomId      String
+  description String
+  foundBy     String
+  foundAt     DateTime  @default(now())
+  /// UNCLAIMED | CLAIMED | RETURNED | DONATED
+  status      String    @default("UNCLAIMED")
+  guestName   String?
+  claimedAt   DateTime?
+  notes       String?
+
+  room        Room      @relation(fields: [roomId], references: [id])
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model SupplyRequest {
+  id          String    @id @default(cuid())
+  requestedBy String
+  items       String
+  quantity    String
+  /// NORMAL | URGENT
+  urgency     String    @default("NORMAL")
+  /// PENDING | FULFILLED
+  status      String    @default("PENDING")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  fulfilledAt DateTime?
+
+  @@index([status])
+  @@index([urgency])
 }
