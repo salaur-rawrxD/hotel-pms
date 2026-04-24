@@ -28,6 +28,9 @@ export const toggleChecklistItem = (checklistId, itemId) =>
 export const assignTask = (data) =>
   axiosClient.post("/housekeeping/tasks/assign", data);
 
+export const patchTaskAssignment = (taskId, staffId) =>
+  axiosClient.patch(`/housekeeping/tasks/${taskId}/assignment`, { staffId });
+
 // ── lost & found ─────────────────────────────────────────
 export const getLostAndFound = () =>
   axiosClient.get("/housekeeping/lost-and-found");

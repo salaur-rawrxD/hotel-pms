@@ -21,6 +21,11 @@ router.post(
   authorize("ADMIN", "MANAGER"),
   ctrl.assignTask,
 );
+router.patch(
+  "/tasks/:id/assignment",
+  authorize("ADMIN", "MANAGER"),
+  ctrl.patchTaskAssignment,
+);
 
 router.patch(
   "/checklist/:checklistId/items/:itemId",

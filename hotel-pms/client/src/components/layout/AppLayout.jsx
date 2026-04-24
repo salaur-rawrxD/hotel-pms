@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar.jsx";
 import TopBar from "./TopBar.jsx";
 import { Toaster } from "../ui/sonner.jsx";
-import { TooltipProvider } from "../ui/tooltip.jsx";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function AppLayout() {
   return (

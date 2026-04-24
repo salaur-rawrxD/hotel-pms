@@ -29,41 +29,44 @@ function ProgressBar({ done, total }) {
   );
 }
 
-function TaskRow({ task, onOpen }) {
+function TaskRow({ task, onOpen, trailing }) {
   const sMeta = TASK_STATUS_META[task.status] ?? TASK_STATUS_META.PENDING;
   const tMeta = TASK_TYPE_META[task.taskType] ?? TASK_TYPE_META.CHECKOUT;
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(task.id)}
-      className="staff-room-row w-full"
-    >
-      <span className="inline-flex h-7 min-w-[2.25rem] items-center justify-center rounded-md bg-muted px-1.5 font-mono text-xs font-semibold text-foreground">
-        {task.roomNumber}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] text-muted-foreground">
-          {task.roomType ?? "—"}
-        </p>
+    <div className="flex w-full min-w-0 items-stretch gap-1">
+      <button
+        type="button"
+        onClick={() => onOpen(task.id)}
+        className={cn("staff-room-row min-w-0 flex-1", !trailing && "w-full")}
+      >
+        <span className="inline-flex h-7 min-w-[2.25rem] items-center justify-center rounded-md bg-muted px-1.5 font-mono text-xs font-semibold text-foreground">
+          {task.roomNumber}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[11px] text-muted-foreground">
+            {task.roomType ?? "—"}
+          </p>
+          <span
+            className={cn(
+              "inline-flex rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide",
+              tMeta.cls,
+            )}
+          >
+            {tMeta.label}
+          </span>
+        </div>
         <span
           className={cn(
-            "inline-flex rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide",
-            tMeta.cls,
+            "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
+            sMeta.cls,
           )}
+          title={sMeta.label}
         >
-          {tMeta.label}
+          {sMeta.icon}
         </span>
-      </div>
-      <span
-        className={cn(
-          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
-          sMeta.cls,
-        )}
-        title={sMeta.label}
-      >
-        {sMeta.icon}
-      </span>
-    </button>
+      </button>
+      {trailing}
+    </div>
   );
 }
 
@@ -105,7 +108,14 @@ function StaffCard({ staff, onOpen }) {
   );
 }
 
-function UnassignedColumn({ rooms, tasks, onOpen, onAssign }) {
+function UnassignedColumn({
+  rooms,
+  tasks,
+  onOpen,
+  onAssignRoom,
+  onAssignTask,
+  canAssign,
+}) {
   const isEmpty = rooms.length === 0 && tasks.length === 0;
   return (
     <div className="staff-card border-rose-200 bg-rose-50/40">
@@ -120,7 +130,25 @@ function UnassignedColumn({ rooms, tasks, onOpen, onAssign }) {
       </header>
       <div className="staff-card-body">
         {tasks.map((t) => (
-          <TaskRow key={t.id} task={t} onOpen={onOpen} />
+          <TaskRow
+            key={t.id}
+            task={t}
+            onOpen={onOpen}
+            trailing={
+              canAssign ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  className="h-auto shrink-0 self-stretch px-2 text-[11px]"
+                  onClick={() => onAssignTask?.(t)}
+                >
+                  <Plus className="h-3 w-3" />
+                  Assign
+                </Button>
+              ) : null
+            }
+          />
         ))}
         {rooms.map((r) => (
           <div
@@ -135,15 +163,21 @@ function UnassignedColumn({ rooms, tasks, onOpen, onAssign }) {
                 {r.roomType ?? "—"}
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="default"
-              className="h-7 px-2 text-[11px]"
-              onClick={() => onAssign(r)}
-            >
-              <Plus className="h-3 w-3" />
-              Assign
-            </Button>
+            {canAssign ? (
+              <Button
+                size="sm"
+                variant="default"
+                className="h-7 px-2 text-[11px]"
+                onClick={() => onAssignRoom(r)}
+              >
+                <Plus className="h-3 w-3" />
+                Assign
+              </Button>
+            ) : (
+              <span className="text-[10px] text-muted-foreground">
+                Manager assigns
+              </span>
+            )}
           </div>
         ))}
         {isEmpty && (
@@ -166,7 +200,12 @@ function LoadingBoard() {
   );
 }
 
-export default function StaffAssignmentBoard({ onOpenTask, onAssignRoom }) {
+export default function StaffAssignmentBoard({
+  onOpenTask,
+  onAssignRoom,
+  onAssignTask,
+  canAssign,
+}) {
   const { data, isLoading } = useAssignments();
 
   if (isLoading) return <LoadingBoard />;
@@ -181,7 +220,9 @@ export default function StaffAssignmentBoard({ onOpenTask, onAssignRoom }) {
         rooms={data.unassigned.rooms}
         tasks={data.unassigned.tasks}
         onOpen={onOpenTask}
-        onAssign={onAssignRoom}
+        onAssignRoom={onAssignRoom}
+        onAssignTask={onAssignTask}
+        canAssign={canAssign}
       />
     </div>
   );
