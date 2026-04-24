@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="A simple PWA for uploading images." />
+
+    <title>Image Uploader PWA</title>
+
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Image Uploader</h1>
+      <p class="subtitle">Pick or drop an image to preview it.</p>
+    </header>
+
+    <main class="app-main">
+      <section id="dropzone" class="dropzone" aria-label="Image upload area">
+        <input
+          id="file-input"
+          class="file-input"
+          type="file"
+          accept="image/*"
+          capture="environment"
+        />
+        <label for="file-input" class="file-label">
+          <svg
+            class="upload-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span class="file-label-title">Tap or drop to upload</span>
+          <span class="file-label-hint">PNG, JPG, or WEBP &middot; up to 10 MB</span>
+        </label>
+      </section>
+
+      <section id="preview-section" class="preview hidden" aria-live="polite">
+        <img id="preview-image" alt="Selected image preview" />
+        <div class="preview-meta">
+          <span id="file-name"></span>
+          <span id="file-size"></span>
+        </div>
+        <button id="clear-button" type="button" class="clear-button">
+          Remove image
+        </button>
+      </section>
+
+      <p id="status" class="status" role="status"></p>
+    </main>
+
+    <footer class="app-footer">
+      <span id="network-status" class="network-status">Online</span>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

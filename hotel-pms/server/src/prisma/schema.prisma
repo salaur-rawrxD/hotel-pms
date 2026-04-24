@@ -1,0 +1,279 @@
+// Hotel PMS Prisma schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ────────────────────────────────────────────────
+// Enums
+// ────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  FRONT_DESK
+  HOUSEKEEPING
+}
+
+enum RoomStatus {
+  VACANT
+  OCCUPIED
+  DIRTY
+  CLEAN
+  OUT_OF_ORDER
+  DUE_IN
+  DUE_OUT
+}
+
+enum LoyaltyTier {
+  NONE
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  NO_SHOW
+}
+
+enum BookingSource {
+  DIRECT
+  EXPEDIA
+  BOOKING
+  AIRBNB
+  CORPORATE
+  WALKIN
+}
+
+enum FolioItemType {
+  ROOM
+  FOOD
+  BEVERAGE
+  PARKING
+  OTHER
+  DISCOUNT
+  TAX
+}
+
+enum HousekeepingStatus {
+  PENDING
+  IN_PROGRESS
+  INSPECTED
+  DONE
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// ────────────────────────────────────────────────
+// Models
+// ────────────────────────────────────────────────
+
+model Property {
+  id          String    @id @default(cuid())
+  name        String
+  address     String
+  phone       String?
+  email       String?
+  totalRooms  Int       @default(0)
+  timezone    String    @default("America/Los_Angeles")
+  createdAt   DateTime  @default(now())
+
+  users       User[]
+  roomTypes   RoomType[]
+  ratePlans   RatePlan[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  name           String
+  role           UserRole
+  propertyId     String?
+  createdAt      DateTime  @default(now())
+
+  property       Property?            @relation(fields: [propertyId], references: [id])
+  folioItems     FolioItem[]
+  tasksAssigned  HousekeepingTask[]   @relation("TasksAssigned")
+  reports        MaintenanceRequest[] @relation("ReportsBy")
+
+  @@index([propertyId])
+}
+
+model RoomType {
+  id             String   @id @default(cuid())
+  name           String
+  baseRate       Decimal  @db.Decimal(10, 2)
+  maxOccupancy   Int      @default(2)
+  amenities      String[]
+  propertyId     String
+
+  property       Property @relation(fields: [propertyId], references: [id])
+  rooms          Room[]
+  reservations   Reservation[]
+  dailyRates     DailyRate[]
+
+  @@index([propertyId])
+}
+
+model Room {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  floor            Int
+  roomTypeId       String
+  status           RoomStatus @default(VACANT)
+  currentGuestId   String?
+
+  roomType         RoomType @relation(fields: [roomTypeId], references: [id])
+  currentGuest     Guest?   @relation("CurrentOccupant", fields: [currentGuestId], references: [id])
+  reservations     Reservation[]
+  housekeepingTasks HousekeepingTask[]
+  maintenance      MaintenanceRequest[]
+
+  @@index([roomTypeId])
+  @@index([status])
+}
+
+model Guest {
+  id             String     @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?    @unique
+  phone          String?
+  nationality    String?
+  idType         String?
+  idNumber       String?
+  loyaltyTier    LoyaltyTier @default(NONE)
+  loyaltyPoints  Int        @default(0)
+  notes          String?
+  createdAt      DateTime   @default(now())
+
+  reservations   Reservation[]
+  currentRooms   Room[]     @relation("CurrentOccupant")
+}
+
+model Reservation {
+  id                 String            @id @default(cuid())
+  confirmationNumber String            @unique
+  guestId            String
+  roomId             String?
+  roomTypeId         String
+  checkIn            DateTime
+  checkOut           DateTime
+  adults             Int               @default(1)
+  children           Int               @default(0)
+  status             ReservationStatus @default(CONFIRMED)
+  source             BookingSource     @default(DIRECT)
+  ratePlanId         String?
+  totalAmount        Decimal           @db.Decimal(10, 2)
+  depositPaid        Decimal           @default(0) @db.Decimal(10, 2)
+  specialRequests    String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  guest     Guest      @relation(fields: [guestId], references: [id])
+  room      Room?      @relation(fields: [roomId], references: [id])
+  roomType  RoomType   @relation(fields: [roomTypeId], references: [id])
+  ratePlan  RatePlan?  @relation(fields: [ratePlanId], references: [id])
+  folio     FolioItem[]
+
+  @@index([guestId])
+  @@index([roomId])
+  @@index([status])
+  @@index([checkIn])
+}
+
+model RatePlan {
+  id                  String   @id @default(cuid())
+  name                String
+  description         String?
+  baseRate            Decimal  @db.Decimal(10, 2)
+  isRefundable        Boolean  @default(true)
+  breakfastIncluded   Boolean  @default(false)
+  propertyId          String
+
+  property            Property @relation(fields: [propertyId], references: [id])
+  reservations        Reservation[]
+
+  @@index([propertyId])
+}
+
+model DailyRate {
+  id                   String   @id @default(cuid())
+  roomTypeId           String
+  date                 DateTime @db.Date
+  rate                 Decimal  @db.Decimal(10, 2)
+  minLOS               Int      @default(1)
+  maxLOS               Int      @default(30)
+  closedToArrival      Boolean  @default(false)
+  closedToDeparture    Boolean  @default(false)
+  isBlocked            Boolean  @default(false)
+
+  roomType             RoomType @relation(fields: [roomTypeId], references: [id])
+
+  @@unique([roomTypeId, date])
+  @@index([date])
+}
+
+model FolioItem {
+  id             String        @id @default(cuid())
+  reservationId  String
+  description    String
+  amount         Decimal       @db.Decimal(10, 2)
+  type           FolioItemType
+  postedAt       DateTime      @default(now())
+  postedById     String?
+
+  reservation    Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  postedBy       User?         @relation(fields: [postedById], references: [id])
+
+  @@index([reservationId])
+}
+
+model HousekeepingTask {
+  id             String              @id @default(cuid())
+  roomId         String
+  assignedToId   String?
+  status         HousekeepingStatus  @default(PENDING)
+  priority       Int                 @default(3)
+  notes          String?
+  createdAt      DateTime            @default(now())
+  completedAt    DateTime?
+
+  room           Room                @relation(fields: [roomId], references: [id])
+  assignedTo     User?               @relation("TasksAssigned", fields: [assignedToId], references: [id])
+
+  @@index([roomId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model MaintenanceRequest {
+  id              String             @id @default(cuid())
+  roomId          String
+  reportedById    String
+  description     String
+  status          MaintenanceStatus  @default(OPEN)
+  createdAt       DateTime           @default(now())
+
+  room            Room               @relation(fields: [roomId], references: [id])
+  reportedBy      User               @relation("ReportsBy", fields: [reportedById], references: [id])
+
+  @@index([roomId])
+  @@index([status])
+}

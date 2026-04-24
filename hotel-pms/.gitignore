@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+client/dist/
+client/build/
+server/dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Prisma
+server/src/prisma/*.db
+server/src/prisma/*.db-journal
+server/src/prisma/migrations/dev.db*
+
+# Vite cache
+client/.vite/

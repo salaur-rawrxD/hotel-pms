@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Local Node toolchain (too large for git; install via brew/nvm instead)
+.tools/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+**/dist/
+**/build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Prisma
+hotel-pms/server/src/prisma/migrations/dev.db*
+hotel-pms/server/src/prisma/*.db
+hotel-pms/server/src/prisma/*.db-journal
+
+# Vite cache
+**/.vite/
+
+# macOS
+Icon?
