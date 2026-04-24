@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 
-import Button from "../ui/Button.jsx";
+import LegacyButton from "../ui/LegacyButton.jsx";
 import {
   useGuestFolioQuery,
   useFolioItemMutation,
@@ -163,14 +163,14 @@ export default function FolioDrawer({ open, onClose, reservationId, guestName })
                       <option value="DISCOUNT">Discount</option>
                     </select>
                   </div>
-                  <Button
+                  <LegacyButton
                     type="button"
                     size="sm"
                     onClick={postCharge}
                     loading={add.isPending}
                   >
                     Post charge
-                  </Button>
+                  </LegacyButton>
                 </div>
               </div>
             </Dialog.Panel>

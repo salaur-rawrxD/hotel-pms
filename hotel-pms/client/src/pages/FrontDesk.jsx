@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import PageWrapper from "../components/layout/PageWrapper.jsx";
-import Button from "../components/ui/Button.jsx";
+import LegacyButton from "../components/ui/LegacyButton.jsx";
 import KPICard from "../components/ui/KPICard.jsx";
 import Modal from "../components/layout/Modal.jsx";
 import {
@@ -144,10 +144,10 @@ export default function FrontDesk() {
       description={`${format(now, "EEEE, MMM d, yyyy")} · ${format(now, "h:mm a")} · ${inHouseCount} guests in house`}
       actions={
         <>
-          <Button variant="gold" type="button" onClick={() => setWalkIn(true)}>
+          <LegacyButton variant="gold" type="button" onClick={() => setWalkIn(true)}>
             + Walk-in
-          </Button>
-          <Button
+          </LegacyButton>
+          <LegacyButton
             variant="secondary"
             type="button"
             onClick={() => {
@@ -156,15 +156,15 @@ export default function FrontDesk() {
             }}
           >
             Night audit
-          </Button>
-          <Button
+          </LegacyButton>
+          <LegacyButton
             variant="ghost"
             type="button"
             leftIcon={<RefreshCw className="h-4 w-4" />}
             onClick={() => qc.invalidateQueries({ queryKey: ["frontdesk"] })}
           >
             Refresh
-          </Button>
+          </LegacyButton>
         </>
       }
     >
