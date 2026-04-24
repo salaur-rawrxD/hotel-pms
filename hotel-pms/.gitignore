@@ -8,8 +8,11 @@ server/node_modules/
 .env.local
 .env.production
 .env.*.local
+server/.env
+client/.env
 
 # ─── Build output ─────────────────────────────
+dist/
 client/dist/
 server/dist/
 client/build/

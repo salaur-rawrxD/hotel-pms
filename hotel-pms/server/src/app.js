@@ -1,3 +1,4 @@
+import "dotenv/config";
 import "express-async-errors";
 
 import cors from "cors";
@@ -22,10 +23,22 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 export function createApp() {
   const app = express();
 
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:4173",
+    process.env.CLIENT_URL,
+  ].filter(Boolean);
+
   app.use(helmet());
   app.use(
     cors({
-      origin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
     }),
   );
