@@ -40,7 +40,10 @@ function PrintAssignmentSheet({ data }) {
   if (!data) return null;
   return (
     <div className="print-assignment-sheet hidden">
-      <h1 style={{ fontFamily: "'Playfair Display', serif", marginBottom: 4 }}>
+      <h1
+        className="mb-1 text-2xl font-semibold"
+        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      >
         Housekeeping Assignments
       </h1>
       <p style={{ color: "#64748b", marginTop: 0, marginBottom: 12 }}>

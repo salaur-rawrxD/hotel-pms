@@ -5,6 +5,7 @@ import {
   ChevronDown,
   Clock3,
   LogOut,
+  Search,
   Settings as SettingsIcon,
   User as UserIcon,
 } from "lucide-react";
@@ -69,9 +70,30 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
-      <h1 className="topbar-title truncate">{title}</h1>
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <h1 className="topbar-title truncate">{title}</h1>
+        <div className="relative hidden min-w-0 max-w-sm flex-1 md:block">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <input
+            type="search"
+            readOnly
+            onFocus={(e) => e.target.blur()}
+            title="Search (coming soon)"
+            aria-label="Search"
+            placeholder="Search guests, rooms, folios…"
+            className={cn(
+              "h-9 w-full rounded-lg border border-border/80 bg-muted/50 pl-9 pr-3 text-sm text-foreground",
+              "shadow-inner placeholder:text-muted-foreground/80",
+              "focus:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/20",
+            )}
+          />
+        </div>
+      </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
         <span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:inline-flex">
           <Clock3 className="h-3.5 w-3.5" />
           {formatLiveDateTime(now)}

@@ -120,26 +120,38 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      {/* Logo */}
+      {/* Brand */}
       <div className="sidebar-logo">
         <div
-          className="grid h-9 w-9 place-items-center rounded-lg"
-          style={{ background: "hsl(var(--gold) / 0.15)" }}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.06]"
         >
-          <Building2 className="h-5 w-5" style={{ color: "hsl(var(--gold))" }} />
+          <Building2
+            className="h-5 w-5"
+            style={{ color: "hsl(var(--gold))" }}
+            aria-hidden
+          />
         </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="sidebar-logo-text">
-            Fair<span>bridge</span>
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">
-            PMS
-          </span>
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-1.5">
+            <span className="sidebar-logo-text">
+              Fair<span className="text-gold">bridge</span>
+            </span>
+            <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/35">
+              PMS
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-2 pb-2">
+        <div className="sidebar-workspace">
+          <span className="sidebar-workspace-name">Meridian · Downtown</span>
+          <span className="sidebar-workspace-meta">Workspace</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="flex-1 overflow-y-auto py-2">
         <p className="sidebar-section-label">Operations</p>
         <div className="space-y-0.5">
           {ops.map((item) => (

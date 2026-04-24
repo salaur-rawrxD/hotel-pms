@@ -86,14 +86,12 @@ export default function Login() {
           >
             <Building2 className="h-7 w-7" style={{ color: "hsl(var(--gold))" }} />
           </div>
-          <h1
-            className="mt-6 font-serif font-bold leading-none"
-            style={{ fontSize: "2.4rem", color: "#fff" }}
-          >
-            Fair<span style={{ color: "hsl(var(--gold))" }}>bridge</span>
+          <h1 className="mt-6 text-4xl font-semibold leading-none tracking-tight text-white">
+            Fair
+            <span className="text-gold">bridge</span>
           </h1>
-          <p className="mt-2 text-sm tracking-wide text-white/50">
-            Hotel Management System
+          <p className="mt-2 text-sm text-white/55">
+            Cloud property management for modern hotels
           </p>
         </div>
 
@@ -126,7 +124,7 @@ export default function Login() {
       <main className="login-right">
         <div className="login-card">
           <header>
-            <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Welcome back
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">

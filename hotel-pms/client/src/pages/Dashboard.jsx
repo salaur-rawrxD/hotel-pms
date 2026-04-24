@@ -7,6 +7,7 @@ import ArrivalsList from "../components/dashboard/ArrivalsList.jsx";
 import KPIBar from "../components/dashboard/KPIBar.jsx";
 import RevenueChart from "../components/dashboard/RevenueChart.jsx";
 import RoomGrid from "../components/dashboard/RoomGrid.jsx";
+import { Badge } from "../components/ui/badge.jsx";
 import { Button } from "../components/ui/button.jsx";
 import { useAuthStore } from "../store/authStore.js";
 import {
@@ -76,9 +77,17 @@ export default function Dashboard() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h1 className="page-title !mb-0">Dashboard</h1>
+            <Badge
+              variant="secondary"
+              className="h-5 rounded-md px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+            >
+              Live
+            </Badge>
+          </div>
           <p className="page-subtitle">
-            {greeting}, <span className="font-semibold">{displayName}</span>
+            {greeting}, <span className="font-medium text-foreground/90">{displayName}</span>
             <span className="text-border"> · </span>
             <span>{formatDate(new Date())}</span>
           </p>

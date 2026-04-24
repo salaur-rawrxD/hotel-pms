@@ -69,7 +69,9 @@ export default {
       },
       fontFamily: {
         sans:  ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["'Playfair Display'", "ui-serif", "Georgia", "serif"],
+        // Aligned with sans for a consistent product UI (SaaS-style); use font-semibold for emphasis.
+        serif: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
