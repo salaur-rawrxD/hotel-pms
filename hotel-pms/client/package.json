@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "npx vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:vercel": "vercel deploy --prod"
   },
   "dependencies": {
     "@headlessui/react": "^2.1.10",

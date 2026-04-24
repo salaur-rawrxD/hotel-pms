@@ -1,0 +1,43 @@
+# Deploys the Vite app to the Vercel project "fairbridge-pms" (ids match hotel-pms/client/.vercel/project.json).
+# Add repository secret VERCEL_TOKEN: https://vercel.com/account/tokens
+# Optional: disable auto-deploys on a duplicate Vercel project (e.g. "hotel-pms") if it shares the same Git repo.
+
+name: Vercel — fairbridge-pms
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "hotel-pms/client/**"
+      - "vercel.json"
+  workflow_dispatch: {}
+
+concurrency:
+  group: vercel-fairbridge-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: team_yMEMwmBcbguyvpNcWypEZdlM
+          vercel-project-id: prj_9vOLFZ0lgaUNpIIjlrrIlBO4o67Q
+          working-directory: hotel-pms/client
+          vercel-args: --prod
+
+  preview:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: team_yMEMwmBcbguyvpNcWypEZdlM
+          vercel-project-id: prj_9vOLFZ0lgaUNpIIjlrrIlBO4o67Q
+          working-directory: hotel-pms/client
